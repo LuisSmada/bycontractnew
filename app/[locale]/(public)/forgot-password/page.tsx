@@ -1,3 +1,9 @@
+import { ComingSoon } from "@/components/custom/ComingSoon";
+
 export default function ForgotPasswordPage() {
-  return <>ForgotPasswordPage</>;
+  return (
+    <>
+      <ComingSoon />
+    </>
+  );
 }
