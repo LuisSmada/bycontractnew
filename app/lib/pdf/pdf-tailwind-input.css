@@ -1,0 +1,18 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/*
+  On déclare explicitement les classes utilisées dans le HTML Puppeteer.
+  Cela garantit leur génération en développement comme en production.
+*/
+@source inline("bg-white");
+@source inline("outline-none");
+@source inline("font-serif");
+@source inline("text-sm");
+@source inline("leading-relaxed");
+@source inline("text-slate-800");
+@source inline("prose");
+@source inline("prose-slate");
+@source inline("max-w-none");
+@source inline("prose-headings:font-serif");
+@source inline("prose-headings:font-bold");

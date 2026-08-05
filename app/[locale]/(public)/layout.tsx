@@ -1,9 +1,9 @@
-import type { ReactNode } from "react"
+import type { ReactNode } from "react";
 
 interface IPublicLayoutProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
 export default function PublicLayout({ children }: IPublicLayoutProps) {
-    return <>{children}</>
+  return <>{children}</>;
 }

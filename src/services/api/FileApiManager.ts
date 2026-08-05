@@ -1,3 +1,1 @@
-export class FileApiManager {
-
-}
+export class FileApiManager {}

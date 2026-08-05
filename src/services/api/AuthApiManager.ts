@@ -1,3 +1,1 @@
-export class AuthApiManager {
-
-}
+export class AuthApiManager {}

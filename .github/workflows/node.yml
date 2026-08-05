@@ -4,44 +4,41 @@ on:
   pull_request:
 jobs:
   build:
-    env: 
+    env:
       CI: true
     runs-on: ubuntu-latest
 
     # Define the default workign directy for all runs
-    defaults:
-      run:
-        working-directory: ./BYCONTRACTNEW
-    
+    #defaults:
+      #run:
+        #working-directory: ./BYCONTRACTNEW
+
     strategy:
       matrix:
         node-version: [22.x]
 
     steps:
       - name: Git checkout ${{ github.ref_name}}
-        uses: actions/checkout@v6
-      
-      - name: Install pnpm 
-        uses: pnpm/action-setup@v6
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: 10 #Version on my laptop
           cache: true
-          run_install: |
-            - recursive: true
-              args: [--strict-peer-dependencies]
-            - args: [--global,typescript]
-      
+
       - name: Setup Nodejs ${{matrix.node-version}}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version}}
           cache: pnpm
-          cache-dependency-path: "./BYCONTRACTNEW/pnpm-lock.yaml"
+          cache-dependency-path: "pnpm-lock.yaml"
 
+      - name: Install global dependencies
+        run: pnpm install --global typescript
 
-      - name:  install dependencies
-        working-directory: BYCONTRACTNEW
-        run: pnpm install
-      
+      - name: Install project dependencies
+        run: pnpm install --strict-peer-dependencies
+
       - name: Run tests
         run: pnpm run test

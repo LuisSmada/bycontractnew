@@ -46,6 +46,17 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* PERSONAL THEMING */
+  --color-ui-brand: #7440ef;
+  --color-ui-brandHover: #2c0b7a;
+  --color-ui-text: #020618;
+  --color-ui-textSubtle: #62748e;
+  --color-ui-iconGray: #b4b6ba;
+  --color-ui-border: #e2e4e3;
+  --color-ui-bg: #f8fafc;
+  --color-ui-surface: #ffffff;
+  --color-ui-separator: #e2e8f0;
 }
 
 :root {
