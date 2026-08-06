@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "pdf:css": "node scripts/build-pdf-css.mjs",
+    "puppeteer:install": "puppeteer browsers install chrome",
     "dev": "pnpm pdf:css && next dev",
-    "build": "pnpm pdf:css && next build",
+    "build": "pnpm pdf:css && pnpm puppeteer:install && next build",
     "start": "next start",
     "test": "vitest",
     "lint": "eslint --fix",
