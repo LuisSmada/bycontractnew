@@ -362,7 +362,7 @@ export default function ContractsPage() {
                             title="Télécharger PDF"
                             isNeutral
                             onClick={() =>
-                              downloadContractPdf(contract.id, contract.name)
+                              downloadContractPdf(contract.id, isTemplate)
                             }
                           />
                         </div>

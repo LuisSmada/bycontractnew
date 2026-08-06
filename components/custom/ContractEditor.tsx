@@ -54,7 +54,10 @@ export const ContractEditor = ({ template }: IContractEditor) => {
           <Button
             className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-transparent hover:bg-slate-100 rounded-lg transition-colors border border-transparent hover:border-slate-200 cursor-pointer hidden sm:block"
             onClick={() =>
-              downloadContractPdf(template?.id ?? "", template?.name)
+              downloadContractPdf(
+                template?.id ?? "",
+                template?.id ? true : false,
+              )
             }
           >
             {"Télécharger"}

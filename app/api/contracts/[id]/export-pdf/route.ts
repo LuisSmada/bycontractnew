@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 import { generateHTML } from "@tiptap/html";
-import { cookies } from "next/headers";
-import { IFindTemplate } from "@/src/types/apiResponseType";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import Subscript from "@tiptap/extension-subscript";
@@ -12,62 +10,47 @@ import { TextStyle } from "@tiptap/extension-text-style";
 import FontFamily from "@tiptap/extension-font-family";
 import { ResizableImageBase } from "@/components/custom/ResizableImageBase";
 import { createPdfHtml } from "@/src/utils/generatePdfUtils";
+import { JSONContent } from "@tiptap/react";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+interface ExportPdfRequestBody {
+  name?: string;
+  body: JSONContent;
+}
+
+interface ErrorResponseBody {
+  error: string;
+  message?: string;
+}
+
+interface RouteContext {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export async function POST(request: Request, { params }: RouteContext): Promise<NextResponse> {
+
   let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
+  let requestBody: ExportPdfRequestBody;
 
   try {
+
     const { id: contractId } = await params;
 
-    const cookieStore = await cookies();
-    const token = cookieStore.get("jwt")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
-    const springBootUrl = process.env.SPRING_BOOT_API_URL;
-
-    if (!springBootUrl) {
-      throw new Error("La variable SPRING_BOOT_API_URL n'est pas configurée.");
-    }
-
-    const response = await fetch(
-      `${springBootUrl}/api/v1/templates/${contractId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Cookie: `jwt=${token}`,
-        },
-        cache: "no-store",
-      },
-    );
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-
-      console.error("Erreur Spring Boot :", {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorBody,
-      });
-
-      return NextResponse.json(
+    try {
+      requestBody = (await request.json()) as ExportPdfRequestBody;
+    } catch {
+      return NextResponse.json<ErrorResponseBody>(
         {
-          error: "Impossible de récupérer le template.",
+          error: "Le corps de la requête n'est pas un JSON valide.",
         },
         {
-          status: response.status,
+          status: 400,
         },
       );
     }
 
-    const templateData = (await response.json()) as IFindTemplate;
-    const jsonBody = templateData.body;
+    const { body: jsonBody, name } = requestBody;
 
     if (!jsonBody) {
       return NextResponse.json(
@@ -96,7 +79,7 @@ export async function GET(
     const fullHtmled = createPdfHtml({
       baseUrl: url.origin,
       htmlContent,
-      title: templateData.name ?? `Document ${contractId}`,
+      title: name ?? `Document ${contractId}`,
     });
 
     // 4. Lancer Puppeteer (navigateur invisible)
