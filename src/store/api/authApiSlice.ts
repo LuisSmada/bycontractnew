@@ -22,7 +22,16 @@ export const authApiSlice = apiSlice.injectEndpoints({
       // Après un login réussi, on force RTK Query à refaire le "getMe" pour mettre à jour l'interface
       invalidatesTags: ["User"],
     }),
+
+    logout: builder.mutation<ILoginResponse, void>({
+      query: () => ({
+        url: "auth/logout",
+        method: "POST",
+      }),
+      // Après un logout réussi, on force RTK Query à refaire le "getMe" pour mettre à jour l'interface
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
-export const { useGetCurrentUserQuery, useLoginMutation } = authApiSlice;
+export const { useGetCurrentUserQuery, useLoginMutation, useLogoutMutation } = authApiSlice;
