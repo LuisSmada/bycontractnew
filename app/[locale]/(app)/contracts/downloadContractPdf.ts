@@ -1,5 +1,3 @@
-import { IFindTemplate } from "@/src/types/apiResponseType";
-
 export const downloadContractPdf = async (
   contractId: string,
   isTemplate: boolean,

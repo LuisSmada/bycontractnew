@@ -5,7 +5,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useState } from "react";
 import { ContractActor } from "./ContractActor";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { downloadContractPdf } from "@/app/[locale]/(app)/contracts/downloadContractPdf";
 import { TContractEditorDocument } from "@/app/[locale]/(app)/contracts/[type]/[id]/page";
 import { ResizableImage } from "./ResizableImage";
@@ -20,7 +20,6 @@ import { SaveContractDialog } from "@/app/[locale]/(app)/contracts/components/Sa
 
 interface IContractEditor {
   document: TContractEditorDocument | null;
-  isTemplate: boolean;
 }
 
 export const ContractEditor = ({ document }: IContractEditor) => {
@@ -32,6 +31,10 @@ export const ContractEditor = ({ document }: IContractEditor) => {
   const [isSaveModalOpened, setIsSaveModalOpened] = useState(false);
 
   const documentContent = document?.body ? document?.body : "";
+
+  const path = usePathname();
+
+  const isNewDocument = path.includes("new");
 
   const editor = useEditor({
     extensions: [
@@ -155,20 +158,24 @@ export const ContractEditor = ({ document }: IContractEditor) => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-transparent hover:bg-slate-100 rounded-lg transition-colors border border-transparent hover:border-slate-200 cursor-pointer hidden sm:block">
-            Partager
-          </Button>
-          <Button
-            className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-transparent hover:bg-slate-100 rounded-lg transition-colors border border-transparent hover:border-slate-200 cursor-pointer hidden sm:block"
-            onClick={() =>
-              downloadContractPdf(
-                document?.id ?? "",
-                document?.id ? true : false,
-              )
-            }
-          >
-            {"Télécharger"}
-          </Button>
+          {!isNewDocument && (
+            <>
+              <Button className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-transparent hover:bg-slate-100 rounded-lg transition-colors border border-transparent hover:border-slate-200 cursor-pointer hidden sm:block">
+                Partager
+              </Button>
+              <Button
+                className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-transparent hover:bg-slate-100 rounded-lg transition-colors border border-transparent hover:border-slate-200 cursor-pointer hidden sm:block"
+                onClick={() =>
+                  downloadContractPdf(
+                    document?.id ?? "",
+                    document?.isTemplate ?? false,
+                  )
+                }
+              >
+                {"Télécharger"}
+              </Button>
+            </>
+          )}
           {/* <Button className="px-4 py-1.5 bg-ui-brand hover:bg-ui-brandHover text-white text-xs font-bold rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-2">
             <Send className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Finaliser & Signer</span>

@@ -13,6 +13,7 @@ export type TContractEditorDocument = {
   id: string;
   name: string;
   body: object;
+  isTemplate: boolean;
 };
 
 export default function ContractUnit() {
@@ -34,9 +35,6 @@ export default function ContractUnit() {
     isError: isErrorContract,
   } = useGetContractByIdQuery(id, { skip: isTemplate });
 
-  const isLoading = isTemplate ? isLoadingTemplate : isLoadingContract;
-  const isError = isTemplate ? isErrorTemplate : isErrorContract;
-
   if (isTemplate) {
     if (isLoadingTemplate) {
       return <p>Chargement...</p>;
@@ -50,9 +48,10 @@ export default function ContractUnit() {
       id: template.id,
       name: template.name,
       body: template.body,
+      isTemplate: isTemplate,
     };
 
-    return <ContractEditor document={document} isTemplate />;
+    return <ContractEditor document={document} />;
   }
 
   if (isLoadingContract) {
@@ -67,7 +66,8 @@ export default function ContractUnit() {
     id: contract.id ?? id,
     name: contract.name,
     body: contract.content.bodyJson,
+    isTemplate: isTemplate,
   };
 
-  return <ContractEditor document={document} isTemplate={false} />;
+  return <ContractEditor document={document} />;
 }
