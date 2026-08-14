@@ -28,13 +28,14 @@ interface RouteContext {
   }>;
 }
 
-export async function POST(request: Request, { params }: RouteContext): Promise<NextResponse> {
-
+export async function POST(
+  request: Request,
+  { params }: RouteContext,
+): Promise<NextResponse> {
   let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
   let requestBody: ExportPdfRequestBody;
 
   try {
-
     const { id: contractId } = await params;
 
     try {

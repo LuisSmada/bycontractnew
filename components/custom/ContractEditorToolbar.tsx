@@ -53,8 +53,6 @@ export const ContractEditorToolbar = ({
 
       const imageSelected = editor.isActive("image");
 
-      console.log("imageSelected", imageSelected);
-
       return {
         isBold: editor.isActive("bold"),
         isItalic: editor.isActive("italic"),

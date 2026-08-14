@@ -105,34 +105,34 @@ export enum EContractsListTabs {
   DRAFT = "DRAFT",
 }
 
-export interface IContract {
-  id: UniqueID;
-  name: string;
-  contractType: TContractType;
-  contractStatus: TContractStatus;
-  company: {
-    id: string;
-    name: string;
-  };
-  author: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-  idTemplateModel: {
-    id: string;
-    name: string;
-  } | null;
-  effectiveDate: string;
-  expirationDate: string;
-  autoRenew: boolean | null;
-  value: number;
-  content: string;
-  createdAt: string;
-  modifiedAt: string;
-}
+// export interface IContract {
+//   id: UniqueID;
+//   name: string;
+//   contractType: TContractType;
+//   contractStatus: TContractStatus;
+//   company: {
+//     id: string;
+//     name: string;
+//   };
+//   author: {
+//     id: string;
+//     firstName: string;
+//     lastName: string;
+//   };
+//   idTemplateModel: {
+//     id: string;
+//     name: string;
+//   } | null;
+//   effectiveDate: string;
+//   expirationDate: string;
+//   autoRenew: boolean | null;
+//   value: number;
+//   content: string;
+//   createdAt: string;
+//   modifiedAt: string;
+// }
 
-export interface IContractGlobal {
-  byId: { [key: string]: IContract };
-  allFoldersIds: string[];
-}
+// export interface IContractGlobal {
+//   byId: { [key: string]: IContract };
+//   allFoldersIds: string[];
+// }

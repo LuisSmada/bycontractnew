@@ -8,7 +8,7 @@ export const apiSlice = createApi({
   }),
 
   // Les "tags" permettent d'invalider le cache automatiquement (ex: recharger la liste après un ajout)
-  tagTypes: ["User", "Template", "Company"],
+  tagTypes: ["User", "Template", "Company", "Contract"],
 
   endpoints: () => ({}),
 });

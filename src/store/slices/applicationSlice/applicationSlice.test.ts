@@ -7,7 +7,7 @@ test("The current user should be setted correctly", () => {
   const fakeUserData: IUser = {
     firstName: "Adams",
     lastName: "AYO",
-    id: " 1"
+    id: " 1",
   };
 
   const nextState = testReducer(

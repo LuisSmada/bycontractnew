@@ -25,8 +25,12 @@ export const downloadContractPdf = async (
       );
     }
 
-    const contract = (await contractResponse.json()) as IFindTemplate;
-    const contractContent = contract.body;
+    const contract = await contractResponse.json();
+
+    console.log(contract);
+    const contractContent = isTemplate
+      ? contract.body
+      : contract.content.bodyJson;
 
     if (!contractContent) {
       throw new Error("Le contrat ne contient aucun contenu.");
@@ -52,7 +56,7 @@ export const downloadContractPdf = async (
 
       throw new Error(
         errorBody?.message ??
-        `Impossible de générer le PDF (${pdfResponse.status})`,
+          `Impossible de générer le PDF (${pdfResponse.status})`,
       );
     }
 

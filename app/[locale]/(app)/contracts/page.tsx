@@ -24,10 +24,14 @@ import { useRouter } from "next/navigation";
 import { CreateDocumentDropdown } from "./components/CreateDocumentDropdown";
 import { ActionBtn } from "./components/ActionBtn";
 import { CustomContractsTableTabs } from "./components/CustomContractsTableTabs";
-import { ITemplateResponse } from "@/src/types/apiResponseType";
+import {
+  IContractResponse,
+  ITemplateResponse,
+} from "@/src/types/apiResponseType";
 import { EContractsListTabs } from "@/src/model/entities";
 import { downloadContractPdf } from "./downloadContractPdf";
 import { useGetAllTemplatesQuery } from "@/src/store/api/templatesApiSlice";
+import { useGetAllContractsQuery } from "@/src/store/api/contractsSlice";
 
 type TMockContractType = {
   id: string;
@@ -106,9 +110,10 @@ const MOCK_CONTRACTS: TMockContractType[] = [
 export default function ContractsPage() {
   const router = useRouter();
 
+  const { data: contracts } = useGetAllContractsQuery();
   const { data: templates } = useGetAllTemplatesQuery();
 
-  console.log(templates);
+  console.log(contracts);
 
   const mapTemplates = (templates: ITemplateResponse[]) => {
     return templates.map((t) => {
@@ -131,11 +136,33 @@ export default function ContractsPage() {
     });
   };
 
+  const mapContracts = (contracts: IContractResponse[]) => {
+    return contracts.map((c) => {
+      const day = new Date(c.createdAt).getDay().toString().padStart(2, "0");
+      const month = new Date(c.createdAt)
+        .getMonth()
+        .toString()
+        .padStart(2, "0");
+      const year = new Date(c.createdAt).getFullYear();
+      return {
+        id: c.id,
+        name: c.name,
+        type: "CDI",
+        tier: c.company.name,
+        status: c.status === "DRAFT" ? "Brouillon" : c.status,
+        class: EContractsListTabs.DRAFT,
+        date: `Créé le ${day}/${month}/${year}`,
+        color: "bg-indigo-100 text-indigo-700",
+      };
+    });
+  };
+
   const adaptedTemplates = mapTemplates(templates ?? []);
+  const adaptedContracts = mapContracts(contracts ?? []);
 
   const allDocuments = useMemo(() => {
-    return [...MOCK_CONTRACTS, ...adaptedTemplates];
-  }, [adaptedTemplates]);
+    return [...MOCK_CONTRACTS, ...adaptedTemplates, ...adaptedContracts];
+  }, [adaptedTemplates, adaptedContracts]);
 
   const [activeTab, setActiveTab] = useState<EContractsListTabs | string>(
     EContractsListTabs.ALL,
@@ -278,6 +305,7 @@ export default function ContractsPage() {
                   ? "bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200"
                   : "bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600";
 
+                const docType = isTemplate ? "template" : "contract";
                 return (
                   <TableRow
                     key={contract.id}
@@ -331,38 +359,41 @@ export default function ContractsPage() {
                       {/* Boutons d'action : Visibles uniquement au survol du tableau (premium UI style) */}
                       <div className="flex items-center justify-end">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 shadow-sm">
-                          {isTemplate ? (
-                            <ActionBtn
-                              icon={PenTool}
-                              title="Éditer le modèle"
+                          <ActionBtn
+                            icon={PenTool}
+                            title="Éditer le modèle"
+                            onClick={() =>
+                              router.push(
+                                `/fr/contracts/${docType}/${contract.id}`,
+                              )
+                            }
+                          />
+
+                          <ActionBtn
+                            icon={Eye}
+                            title="Inspecter"
+                            onClick={() => setInspectedContractId(contract.id)}
+                          />
+
+                          {/* <ActionBtn
+                              icon={Sparkles}
+                              title="Analyser IA"
                               onClick={() =>
-                                router.push(`/fr/contracts/${contract.id}`)
+                                console.log("AI analyze", contract.id)
                               }
-                            />
-                          ) : (
-                            <>
-                              <ActionBtn
-                                icon={Eye}
-                                title="Inspecter"
-                                onClick={() =>
-                                  setInspectedContractId(contract.id)
-                                }
-                              />
-                              <ActionBtn
-                                icon={Sparkles}
-                                title="Analyser IA"
-                                onClick={() =>
-                                  console.log("AI analyze", contract.id)
-                                }
-                              />
-                            </>
-                          )}
+                            /> */}
+
                           <ActionBtn
                             icon={Download}
                             title="Télécharger PDF"
                             isNeutral
                             onClick={() =>
-                              downloadContractPdf(contract.id, isTemplate)
+                              downloadContractPdf(
+                                contract.id,
+                                contract.class === EContractsListTabs.TEMPLATE
+                                  ? true
+                                  : false,
+                              )
                             }
                           />
                         </div>

@@ -10,8 +10,8 @@ jobs:
 
     # Define the default workign directy for all runs
     #defaults:
-      #run:
-        #working-directory: ./BYCONTRACTNEW
+    #run:
+    #working-directory: ./BYCONTRACTNEW
 
     strategy:
       matrix:
