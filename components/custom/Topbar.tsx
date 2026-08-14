@@ -133,7 +133,7 @@ export const Topbar = () => {
               }
             >
               <DropdownMenuGroup>
-                <DropdownMenuItem
+                {/* <DropdownMenuItem
                   onClick={() => router.push("/fr/profile")}
                   className={
                     "text-xs gap-3 font-semibold text-slate-700 px-3 py-2 hover:bg-slate-50 Rounded-lg  cursor-pointer"
@@ -150,7 +150,7 @@ export const Topbar = () => {
                 >
                   <CreditCardIcon />
                   Billing
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 <DropdownMenuItem
                   onClick={() => router.push("/fr/settings")}
                   className={

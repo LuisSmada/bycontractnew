@@ -17,6 +17,8 @@ import { useEditor, useEditorState } from "@tiptap/react";
 import Subscript from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { SaveContractDialog } from "@/app/[locale]/(app)/contracts/components/SaveContractDialog";
+import { useCreateContractMutation } from "@/src/store/api/contractsSlice";
+import { ContractEditorSide } from "./ContractEditorSide";
 
 interface IContractEditor {
   document: TContractEditorDocument | null;
@@ -29,6 +31,8 @@ export const ContractEditor = ({ document }: IContractEditor) => {
   const router = useRouter();
 
   const [isSaveModalOpened, setIsSaveModalOpened] = useState(false);
+
+  const [createContract, { isLoading }] = useCreateContractMutation();
 
   const documentContent = document?.body ? document?.body : "";
 
@@ -129,6 +133,30 @@ export const ContractEditor = ({ document }: IContractEditor) => {
     },
   });
 
+  //   const handleSaveContract = async () => {
+  //     try {
+  //       await createContract(
+  //         {
+  //           autoRenew: boolean;
+  //   contractType: TContractType;
+  //   effectiveDate: string;
+  //   expirationDate: string;
+  //   id: string | null;
+  //   name: string;
+  //   value: number;
+  //   status: TContractStatus;
+  //   idTemplate: string | null;
+  // idAuthor: string;
+  //   idCompany: string;
+  //   bodyJson: object;
+  //   bodyText: string;
+  //         }
+  //       )
+  //     }catch(e) {
+
+  //     }
+  //   }
+
   return (
     <>
       <div className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-20 shadow-sm">
@@ -195,7 +223,7 @@ export const ContractEditor = ({ document }: IContractEditor) => {
 
       <div className="flex-1 flex overflow-hidden">
         <ContractActor editor={editor} />
-        {/* <ContractEditorSide /> */}
+        <ContractEditorSide />
       </div>
 
       <SaveContractDialog
