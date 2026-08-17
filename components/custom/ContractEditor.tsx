@@ -223,7 +223,7 @@ export const ContractEditor = ({ document }: IContractEditor) => {
 
       <div className="flex-1 flex overflow-hidden">
         <ContractActor editor={editor} />
-        <ContractEditorSide />
+        <ContractEditorSide isReadOnly={false} mode="contract" />
       </div>
 
       <SaveContractDialog
