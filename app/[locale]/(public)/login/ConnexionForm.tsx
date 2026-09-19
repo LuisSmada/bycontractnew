@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { PasswordInput } from "@/components/custom/PasswordInput";
 import { useLoginMutation } from "@/src/store/api/authApiSlice";
+import { TOASTSTYLES } from "@/src/utils/toastsCSSUtils";
 
 export const ConnexionForm = () => {
   const [userLogin, setUserLogin] = useState("");
@@ -35,7 +36,10 @@ export const ConnexionForm = () => {
         password: userPassword,
       }).unwrap();
 
-      toast.success("Login successfully");
+      toast.success("Login successfully", {
+        position: "top-right",
+        style: TOASTSTYLES.SUCCESS,
+      });
       router.push("/fr/dashboard");
     } catch (err: unknown) {
       // 1. On remplace 'any' par 'unknown' (le standard TS)
@@ -43,9 +47,15 @@ export const ConnexionForm = () => {
       // 2. On "cast" l'erreur pour dire à TS : "Fais-moi confiance, c'est une erreur API"
       const error = err as FetchBaseQueryError;
       if (error?.status === 401 || error?.status === 403) {
-        toast.error("Identifiants incorrects. Veuillez réessayer.");
+        toast.error("Identifiants incorrects. Veuillez réessayer.", {
+          position: "top-right",
+          style: TOASTSTYLES.ERROR,
+        });
       } else {
-        toast.error("Une erreur est survenue lors de la connexion au serveur.");
+        toast.error(
+          "Une erreur est survenue lors de la connexion au serveur.",
+          { position: "top-right", style: TOASTSTYLES.ERROR },
+        );
       }
     }
   };

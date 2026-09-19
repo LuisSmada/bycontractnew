@@ -54,7 +54,9 @@ export const StakeholderCard = (props: IStakeholderCard) => {
         </div>
         <div className="flex items-center justify-between text-xs">
           <span className="text-slate-500">Adresse</span>
-          <span className="font-medium text-slate-800">{props.address}</span>
+          <span className="font-medium text-slate-800">
+            {props.address.toUpperCase()}
+          </span>
         </div>
       </div>
       <Button

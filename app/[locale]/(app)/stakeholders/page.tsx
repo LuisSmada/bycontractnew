@@ -2,13 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useGetAllCompaniesQuery } from "@/src/store/api/companiesApiSlice";
+import { useGetAllMyCompaniesQuery } from "@/src/store/api/companiesApiSlice";
 import { Plus, Search } from "lucide-react";
 import { StakeholderCard } from "./StakeholderCard";
 import { SkeletonStakeHolder } from "./SkeletonStakeHolder";
 
 export default function StakeholdersPage() {
-  const { data: stakeholders, isLoading } = useGetAllCompaniesQuery();
+  const { data: stakeholders, isLoading } = useGetAllMyCompaniesQuery();
+
+  console.log(stakeholders);
 
   return (
     <div

@@ -32,6 +32,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["User"],
     }),
   }),
+  overrideExisting: true,
 });
 
 export const { useGetCurrentUserQuery, useLoginMutation, useLogoutMutation } =

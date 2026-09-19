@@ -28,10 +28,15 @@ import { Button } from "../ui/button";
 import { useLogoutMutation } from "@/src/store/api/authApiSlice";
 import { toast } from "sonner";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
+import { useDispatch } from "react-redux";
+import { apiSlice } from "@/src/store/api/apiSlice";
+import { TOASTSTYLES } from "@/src/utils/toastsCSSUtils";
 
 export const Topbar = () => {
   const router = useRouter();
   const currentUser = useAppSelector(currentUserSelector);
+
+  const dispatch = useDispatch();
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -47,12 +52,22 @@ export const Topbar = () => {
     try {
       // On utilise .unwrap() pour pouvoir capturer l'erreur directement dans le catch
       await logout().unwrap();
-      toast.success("Logout successfully");
+      dispatch(apiSlice.util.resetApiState());
+      // toast.success("Logout successfully", {
+      //   position: "top-right",
+      //   style: TOASTSTYLES.SUCCESS,
+      // });
       router.replace("/fr/login");
     } catch (err: unknown) {
       const error = err as FetchBaseQueryError;
       if (error) {
-        toast.error("Une erreur est survenue lors de la connexion au serveur.");
+        toast.error(
+          "Une erreur est survenue lors de la connexion au serveur.",
+          {
+            position: "top-right",
+            style: TOASTSTYLES.ERROR,
+          },
+        );
       }
     }
   };

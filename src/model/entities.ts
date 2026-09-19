@@ -93,7 +93,7 @@ export interface ITemplateModel {
   modifiedAt: string;
 }
 
-export type TContractType = "NDA" | "CDI" | "BAIL";
+export type TContractType = "NDA" | "CDI" | "BAIL" | "SERVICE";
 export type TContractStatus = "DRAFT" | "PENDING" | "SIGNED" | "RISKED";
 
 export enum EContractsListTabs {

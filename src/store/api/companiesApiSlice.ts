@@ -4,7 +4,7 @@ import { apiSlice } from "./apiSlice";
 
 export const companiesApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getAllCompanies: builder.query<ICompany[], void>({
+    getAllMyCompanies: builder.query<ICompany[], void>({
       query: () => "/companies",
       providesTags: ["Company"],
     }),
@@ -29,7 +29,7 @@ export const companiesApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
-  useGetAllCompaniesQuery,
+  useGetAllMyCompaniesQuery,
   useCreateCompanyMutation,
   useDeleteCompanyMutation,
 } = companiesApiSlice;

@@ -48,7 +48,7 @@ export default function RootLayout({
         inter.variable,
       )}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <div className="flex items-center justify-center md:hidden w-screen h-screen text-ui-text font-bold text-2xl">
           Allez sur un écran adapté !
         </div>

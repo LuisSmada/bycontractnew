@@ -27,8 +27,9 @@ import { Switch } from "../ui/switch";
 import { useGetCurrentUserQuery } from "@/src/store/api/authApiSlice";
 import { assertsNonNullable } from "@/src/helpers/generic";
 import { usePathname } from "next/navigation";
-import { useGetAllCompaniesQuery } from "@/src/store/api/companiesApiSlice";
+import { useGetAllMyCompaniesQuery } from "@/src/store/api/companiesApiSlice";
 import { Button } from "../ui/button";
+import { TContractType } from "@/src/model/entities";
 
 export type SidebarMode = "contract" | "template";
 
@@ -60,12 +61,12 @@ export const ContractEditorSide = ({
   const { data: currentUser } = useGetCurrentUserQuery();
   assertsNonNullable(currentUser);
 
-  const { data: allStakeholders } = useGetAllCompaniesQuery();
+  const { data: allStakeholders } = useGetAllMyCompaniesQuery();
 
   const [activeTab, setActiveTab] = useState<"parametres" | "assistants">(
     "parametres",
   );
-  const [contractType, setContractType] = useState<ContractType | null>(null);
+  const [contractType, setContractType] = useState<TContractType | null>(null);
   const [autoRenew, setAutoRenew] = useState<boolean>(false);
   const [currency, setCurrency] = useState<string>("EUR");
 
@@ -112,7 +113,7 @@ export const ContractEditorSide = ({
       label: "Accord de confidentialité (NDA)",
     },
     {
-      value: "PRESTATION",
+      value: "SERVICE",
       label: "Contrat de prestation",
     },
     {
@@ -123,13 +124,7 @@ export const ContractEditorSide = ({
       value: "BAIL",
       label: "Bail commercial",
     },
-    {
-      value: "SAAS",
-      label: "Contrat SaaS",
-    },
-  ] as const;
-
-  type ContractType = (typeof contractTypes)[number]["value"];
+  ] as const satisfies { value: TContractType; label: string }[];
 
   return (
     <div className="w-80 bg-white border-l border-slate-200 flex flex-col shrink-0 z-10 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] md:flex h-full">
@@ -167,7 +162,7 @@ export const ContractEditorSide = ({
                 items={contractTypes}
                 value={contractType}
                 onValueChange={(value) => {
-                  setContractType(value as ContractType);
+                  setContractType(value);
                 }}
                 disabled={isReadOnly}
               >
