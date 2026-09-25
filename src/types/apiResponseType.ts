@@ -71,7 +71,10 @@ export interface IContractResponse {
   name: string;
   status: TContractStatus;
   author: TAuthorInfos;
-  company: TCompanyInfos;
+  company: {
+    id: string;
+    name: string;
+  };
   createdAt: string;
   modifiedAt: string;
 }
