@@ -46,7 +46,7 @@ export const CreateDocumentDropdown = () => {
             CREATION
           </DropdownMenuLabel>
           <DropdownMenuItem
-            onClick={() => router.push("/fr/contracts/new")}
+            onClick={() => router.push("/fr/contracts/new/contract")}
             className={
               "text-xs font-semibold text-slate-700 flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg transition-colors text-left cursor-pointer"
             }

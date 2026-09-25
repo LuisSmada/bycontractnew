@@ -10,8 +10,6 @@ import { SkeletonStakeHolder } from "./SkeletonStakeHolder";
 export default function StakeholdersPage() {
   const { data: stakeholders, isLoading } = useGetAllMyCompaniesQuery();
 
-  console.log(stakeholders);
-
   return (
     <div
       id="view-parties"
@@ -46,14 +44,15 @@ export default function StakeholdersPage() {
         {!isLoading &&
           stakeholders &&
           stakeholders.map((sth) => {
+            const clientType = sth.siret ? "Client B2B" : "Client B2C";
             return (
               <StakeholderCard
                 key={sth.id}
                 name={sth.name}
-                role={"Clien B2B"}
+                role={clientType}
                 activeContracts={0}
                 address={sth.address}
-                mainContact={"Lee Robinson"}
+                mainContact={`${sth.mainContact.firstName} ${sth.mainContact.lastName}`}
               />
             );
           })}

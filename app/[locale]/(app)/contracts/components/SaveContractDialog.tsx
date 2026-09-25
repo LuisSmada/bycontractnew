@@ -46,7 +46,7 @@ export const SaveContractDialog = ({
               Sélectionnez le statut de sauvegarde approprié.
             </p>
           </div>
-          <DialogDescription className="p-6 space-y-4">
+          <div className="p-6 space-y-4">
             <div
               onClick={() => {
                 setIsSaveModalOpened(false);
@@ -94,7 +94,7 @@ export const SaveContractDialog = ({
                 </p>
               </div>
             </div>
-          </DialogDescription>
+          </div>
         </DialogHeader>
         <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-center">
           <Button

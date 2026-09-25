@@ -1,5 +1,4 @@
-import { ICompany } from "@/src/model/entities";
-import { ICreateCompanyRequest } from "@/src/types/apiResponseType";
+import { ICompany, ICreateCompanyRequest } from "@/src/types/apiResponseType";
 import { apiSlice } from "./apiSlice";
 
 export const companiesApiSlice = apiSlice.injectEndpoints({

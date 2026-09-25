@@ -1,20 +1,15 @@
 "use client";
 
 import { ContractEditor } from "@/components/custom/ContractEditor";
+import { TAuthorInfos } from "@/src/model/entities";
 import { useGetContractByIdQuery } from "@/src/store/api/contractsSlice";
 import { useGetTemplateByIdQuery } from "@/src/store/api/templatesApiSlice";
 import {
   IFindContractResponse,
   IFindTemplate,
+  TContractEditorDocument,
 } from "@/src/types/apiResponseType";
 import { useParams } from "next/navigation";
-
-export type TContractEditorDocument = {
-  id: string;
-  name: string;
-  body: object;
-  isTemplate: boolean;
-};
 
 export default function ContractUnit() {
   const { id, type } = useParams<{
@@ -49,6 +44,14 @@ export default function ContractUnit() {
       name: template.name,
       body: template.body,
       isTemplate: isTemplate,
+      createdAt: template.createdAt,
+      modifiedAt: template.modifiedAt,
+      author: {
+        id: template.author.id,
+        firstName: template.author.firstName,
+        lastName: template.author.lastName,
+      },
+      variablesDefinition: "",
     };
 
     return <ContractEditor document={document} />;
@@ -62,11 +65,12 @@ export default function ContractUnit() {
     return <p>Contrat introuvable.</p>;
   }
 
+  const { content, ...restOfContract } = contract;
+
   const document: TContractEditorDocument = {
-    id: contract.id ?? id,
-    name: contract.name,
-    body: contract.content.bodyJson,
-    isTemplate: isTemplate,
+    ...restOfContract,
+    body: content.bodyJson,
+    isTemplate: false,
   };
 
   return <ContractEditor document={document} />;

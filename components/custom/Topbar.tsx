@@ -14,8 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import {
-  UserIcon,
-  CreditCardIcon,
   SettingsIcon,
   LogOutIcon,
   ChevronDown,

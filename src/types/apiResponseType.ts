@@ -1,32 +1,37 @@
-import { TContractStatus, TContractType } from "../model/entities";
+import {
+  IMainContactCompany,
+  TAuthorInfos,
+  TContractStatus,
+  TContractType,
+  UniqueID,
+} from "../model/entities";
 
 // ------------------TEMPLATE------------------------//
 
 export interface ITemplateResponse {
-  id: string;
+  id: UniqueID;
   name: string;
-  authorName: string;
+  author: TAuthorInfos;
   createdAt: string;
   modifiedAt: string;
 }
 
-export interface IFindTemplate {
-  id: string;
-  name: string;
-  authorName: string;
+export interface IFindTemplate extends ITemplateResponse {
   body: object;
   variablesDefinition: string;
   createdAt: string;
-  modifiedAt: string;
 }
 
 // ------------------COMPANY------------------------//
 
 export interface ICompany {
-  id: string;
+  id: UniqueID;
   name: string;
   siret: string;
   address: string;
+  createdAt: string;
+  modifiedAt: string;
+  mainContact: IMainContactCompany;
 }
 
 export interface ICreateCompanyRequest {
@@ -42,46 +47,38 @@ interface IContractGeneric {
   contractType: TContractType;
   effectiveDate: string;
   expirationDate: string;
-  id: string | null;
+  id: UniqueID | null;
   name: string;
   value: number;
   status: TContractStatus;
   idTemplate: string | null;
+  createdAt: string;
+  modifiedAt: string;
 }
 
 export interface ICreateContractRequest extends Exclude<
   IContractGeneric,
   "id"
 > {
-  idAuthor: string;
-  idCompany: string;
+  idAuthor: UniqueID;
+  idCompany: UniqueID;
   bodyJson: object;
   bodyText: string;
 }
 
 export interface IContractResponse {
-  id: string;
+  id: UniqueID;
   name: string;
   status: TContractStatus;
-  author: {
-    firstName: string;
-    lastName: string;
-  };
-  company: {
-    name: string;
-  };
+  author: TAuthorInfos;
+  company: TCompanyInfos;
   createdAt: string;
   modifiedAt: string;
 }
 
 export interface IFindContractResponse extends IContractGeneric {
-  author: {
-    firstName: string;
-    lastName: string;
-  };
-  company: {
-    name: string;
-  };
+  author: TAuthorInfos;
+  company: TCompanyInfos;
   content: {
     bodyJson: object;
     plaintext: string;
@@ -89,3 +86,22 @@ export interface IFindContractResponse extends IContractGeneric {
     modifiedAt: string;
   };
 }
+
+//****************** */
+
+export type TCompanyInfos = Pick<
+  ICompany,
+  "id" | "name" | "mainContact" | "siret"
+>;
+
+export type TContractEditorTemplate = IFindTemplate & {
+  isTemplate: true;
+};
+
+export type TContractEditorContract = Omit<IFindContractResponse, "content"> & {
+  isTemplate: false;
+  body: object;
+};
+
+export type TContractEditorDocument =
+  TContractEditorTemplate | TContractEditorContract;
