@@ -16,9 +16,15 @@ import { useCreateContractMutation } from "@/src/store/api/contractsSlice";
 import { ContractEditorSide } from "./ContractEditorSide";
 import { useGetCurrentUserQuery } from "@/src/store/api/authApiSlice";
 import { assertsNonNullable } from "@/src/helpers/generic";
-import { TContractEditorDocument } from "@/src/types/apiResponseType";
+import {
+  ICreateContractRequest,
+  TContractEditorDocument,
+} from "@/src/types/apiResponseType";
 import { ContractEditorContextBar } from "./ContractEditorContextBar";
 import { UnsavedChangesDialog } from "@/app/[locale]/(app)/contracts/components/UnsavedChangesDialog";
+import { toast } from "sonner";
+import { TOASTSTYLES } from "@/src/utils/toastsCSSUtils";
+import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 
 interface IContractEditor {
   document: TContractEditorDocument | null;
@@ -189,29 +195,81 @@ export const ContractEditor = (props: IContractEditor) => {
     },
   });
 
-  //   const handleSaveContract = async () => {
-  //     try {
-  //       await createContract(
-  //         {
-  //           autoRenew: boolean;
-  //   contractType: TContractType;
-  //   effectiveDate: string;
-  //   expirationDate: string;
-  //   id: string | null;
-  //   name: string;
-  //   value: number;
-  //   status: TContractStatus;
-  //   idTemplate: string | null;
-  // idAuthor: string;
-  //   idCompany: string;
-  //   bodyJson: object;
-  //   bodyText: string;
-  //         }
-  //       )
-  //     }catch(e) {
+  const handleSaveContract = async () => {
+    console.log("Enter");
+    try {
+      let payload: ICreateContractRequest | null = null;
+      if (!initialDocument) {
+        if (workingDocument && !workingDocument?.isTemplate) {
+          payload = {
+            autoRenew: workingDocument?.autoRenew ?? false,
+            contractType: workingDocument?.contractType,
+            effectiveDate: workingDocument?.effectiveDate,
+            expirationDate: workingDocument?.expirationDate,
+            name: workingDocument?.name,
+            value: workingDocument?.value,
+            idTemplate: null,
+            idAuthor: currentUser.id,
+            idCompany: workingDocument.company?.id,
+            bodyJson: workingDocument.body,
+            bodyText: editor?.getText() ?? "",
+          };
+        }
+      } else {
+        if (workingDocument && !workingDocument?.isTemplate) {
+          payload = {
+            autoRenew: workingDocument.autoRenew,
+            contractType: workingDocument.contractType,
+            effectiveDate: workingDocument.effectiveDate,
+            expirationDate: workingDocument.expirationDate,
+            name: workingDocument.name,
+            value: workingDocument.value,
+            idTemplate: workingDocument.idTemplate,
+            idAuthor: workingDocument.author?.id,
+            idCompany: workingDocument.company?.id,
+            bodyJson: workingDocument.body,
+            bodyText: editor?.getText() ?? "",
+          };
+        }
+      }
 
-  //     }
-  //   }
+      console.log(payload);
+
+      if (payload) {
+        await createContract(payload).unwrap();
+
+        setIsSaveModalOpened(false);
+
+        toast.success("Enregistré comme Brouillon.", {
+          position: "top-right",
+          style: TOASTSTYLES.INFO,
+        });
+
+        router.back();
+      } else {
+        setIsSaveModalOpened(false);
+
+        toast.success("Les donnees ne sont pas completes pour la sauvegarde", {
+          position: "top-right",
+          style: TOASTSTYLES.INFO,
+        });
+      }
+    } catch (e: unknown) {
+      console.error(e);
+      const error = e as FetchBaseQueryError;
+      if (error?.status === 401 || error?.status === 403) {
+        toast.error("Des informations sont manquantes. Veuillez réessayer.", {
+          position: "top-right",
+          style: TOASTSTYLES.ERROR,
+        });
+      } else {
+        toast.error(
+          "Une erreur est survenue lors de la connexion au serveur.",
+          { position: "top-right", style: TOASTSTYLES.ERROR },
+        );
+      }
+    }
+  };
 
   return (
     <>
@@ -235,6 +293,7 @@ export const ContractEditor = (props: IContractEditor) => {
       <SaveContractDialog
         isSaveModalOpened={isSaveModalOpened}
         setIsSaveModalOpened={setIsSaveModalOpened}
+        onContractSave={handleSaveContract}
       />
 
       <UnsavedChangesDialog

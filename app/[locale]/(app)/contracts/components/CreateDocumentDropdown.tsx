@@ -18,9 +18,15 @@ import {
   Upload,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { FC, useState } from "react";
 
-export const CreateDocumentDropdown = () => {
+interface ICreateDocumentDropdown {
+  setIsTemplateModalOpened: (value: boolean) => void;
+}
+
+export const CreateDocumentDropdown: FC<ICreateDocumentDropdown> = ({
+  setIsTemplateModalOpened,
+}) => {
   const router = useRouter();
   const [isDropdownOpened, setIsDropdownOpened] = useState(false);
   return (
@@ -57,6 +63,7 @@ export const CreateDocumentDropdown = () => {
             Document vierge
           </DropdownMenuItem>
           <DropdownMenuItem
+            onClick={() => setIsTemplateModalOpened(true)}
             className={
               "text-xs font-semibold text-slate-700 flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg transition-colors text-left cursor-pointer"
             }

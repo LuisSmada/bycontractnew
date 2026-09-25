@@ -32,6 +32,10 @@ import { EContractsListTabs } from "@/src/model/entities";
 import { downloadContractPdf } from "./downloadContractPdf";
 import { useGetAllTemplatesQuery } from "@/src/store/api/templatesApiSlice";
 import { useGetAllContractsQuery } from "@/src/store/api/contractsSlice";
+import {
+  IFindTemplate,
+  TemplateSelectionDialog,
+} from "./components/TemplateSelectionDialog";
 
 type TMockContractType = {
   id: string;
@@ -172,6 +176,8 @@ export default function ContractsPage() {
   const [inspectedContractId, setInspectedContractId] = useState<string | null>(
     null,
   );
+  const [isTemplateModalOpened, setIsTemplateModalOpened] =
+    useState<boolean>(false);
 
   const globalCheckBoxRef = useRef<HTMLInputElement | null>(null);
 
@@ -229,153 +235,158 @@ export default function ContractsPage() {
   }, [isSomeSelected]);
 
   return (
-    <div className="p-8 w-full mx-auto space-y-8 flex-1 pb-32 ">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-ui-text">
-            Espace Contrats
-          </h1>
-          <p className="text-sm text-ui-textSubtle mt-1">
-            Gérez le cycle de vie de vos documents, auditez les clauses et
-            appliquez des actions groupées.
-          </p>
+    <>
+      <div className="p-8 w-full mx-auto space-y-8 flex-1 pb-32 ">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-ui-text">
+              Espace Contrats
+            </h1>
+            <p className="text-sm text-ui-textSubtle mt-1">
+              Gérez le cycle de vie de vos documents, auditez les clauses et
+              appliquez des actions groupées.
+            </p>
+          </div>
+
+          <CreateDocumentDropdown
+            setIsTemplateModalOpened={setIsTemplateModalOpened}
+          />
         </div>
 
-        <CreateDocumentDropdown />
-      </div>
+        {/* 2. BARRE D'ONGLETS & RECHERCHE */}
+        {/* <ContractsTableTabs /> */}
 
-      {/* 2. BARRE D'ONGLETS & RECHERCHE */}
-      {/* <ContractsTableTabs /> */}
+        <CustomContractsTableTabs
+          contracts={allDocuments}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          setSelectedIds={setSelectedIds}
+        />
 
-      <CustomContractsTableTabs
-        contracts={allDocuments}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        setSelectedIds={setSelectedIds}
-      />
-
-      {/* 3. TABLEAU DE DONNÉES */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <Table className="w-full text-left border-collapse">
-          <TableHeader>
-            <TableRow className="bg-slate-50/70 border-b border-slate-200">
-              <TableHead className="p-4 pl-6 w-12">
-                <Checkbox
-                  checked={isAllSelected}
-                  ref={globalCheckBoxRef}
-                  onCheckedChange={(value) => handleSelectAll(value)}
-                  className="w-4 h-4  border-slate-300 rounded cursor-pointer data-checked:bg-ui-brand"
-                />
-              </TableHead>
-              <TableHead className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Nom du document
-              </TableHead>
-              <TableHead className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Tiers
-              </TableHead>
-              <TableHead className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Statut
-              </TableHead>
-              <TableHead className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Échéance
-              </TableHead>
-              <TableHead className="p-4 pr-6 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">
-                Actions rapides
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredContracts.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="p-12 text-center text-slate-400 text-sm"
-                >
-                  Aucun document trouvé dans cette vue.
-                </TableCell>
+        {/* 3. TABLEAU DE DONNÉES */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <Table className="w-full text-left border-collapse">
+            <TableHeader>
+              <TableRow className="bg-slate-50/70 border-b border-slate-200">
+                <TableHead className="p-4 pl-6 w-12">
+                  <Checkbox
+                    checked={isAllSelected}
+                    ref={globalCheckBoxRef}
+                    onCheckedChange={(value) => handleSelectAll(value)}
+                    className="w-4 h-4  border-slate-300 rounded cursor-pointer data-checked:bg-ui-brand"
+                  />
+                </TableHead>
+                <TableHead className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Nom du document
+                </TableHead>
+                <TableHead className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Tiers
+                </TableHead>
+                <TableHead className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Statut
+                </TableHead>
+                <TableHead className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Échéance
+                </TableHead>
+                <TableHead className="p-4 pr-6 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">
+                  Actions rapides
+                </TableHead>
               </TableRow>
-            ) : (
-              filteredContracts.map((contract) => {
-                const isSelected = selectedIds.includes(contract.id);
-                const isTemplate =
-                  contract.class === EContractsListTabs.TEMPLATE;
-                const isTemplateClass = isTemplate
-                  ? "bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200"
-                  : "bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600";
-
-                const docType = isTemplate ? "template" : "contract";
-                return (
-                  <TableRow
-                    key={contract.id}
-                    className={`border-b border-slate-100 hover:bg-slate-50/70 transition-colors group text-slate-800 h-16 ${isSelected ? "bg-indigo-50/30" : ""}`}
+            </TableHeader>
+            <TableBody>
+              {filteredContracts.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="p-12 text-center text-slate-400 text-sm"
                   >
-                    <TableCell className="p-4 pl-6 align-middle">
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => handleSelectOne(contract.id)}
-                        className="w-4 h-4  cursor-pointer data-checked:bg-ui-brand"
-                      />
-                    </TableCell>
-                    <TableCell className="p-4 align-middle">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-10 h-10 rounded-lg flex items-center justify-center font-semibold text-xs transition-colors shrink-0 ${isTemplateClass}`}
+                    Aucun document trouvé dans cette vue.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredContracts.map((contract) => {
+                  const isSelected = selectedIds.includes(contract.id);
+                  const isTemplate =
+                    contract.class === EContractsListTabs.TEMPLATE;
+                  const isTemplateClass = isTemplate
+                    ? "bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200"
+                    : "bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600";
+
+                  const docType = isTemplate ? "template" : "contract";
+                  return (
+                    <TableRow
+                      key={contract.id}
+                      className={`border-b border-slate-100 hover:bg-slate-50/70 transition-colors group text-slate-800 h-16 ${isSelected ? "bg-indigo-50/30" : ""}`}
+                    >
+                      <TableCell className="p-4 pl-6 align-middle">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => handleSelectOne(contract.id)}
+                          className="w-4 h-4  cursor-pointer data-checked:bg-ui-brand"
+                        />
+                      </TableCell>
+                      <TableCell className="p-4 align-middle">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center font-semibold text-xs transition-colors shrink-0 ${isTemplateClass}`}
+                          >
+                            {isTemplate ? (
+                              <FileBadge2 className="w-5 h-5" />
+                            ) : (
+                              contract.type.slice(0, 4).toUpperCase()
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-ui-text leading-none">
+                              {contract.name}
+                            </p>
+                            <span className="text-xs text-slate-400 mt-1 block">
+                              {isTemplate
+                                ? "Matrice globale"
+                                : "Rédigé par Adam Dupont"}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="p-4 text-sm font-medium text-slate-600 align-middle">
+                        {contract.tier}
+                      </TableCell>
+                      <TableCell className="p-4 align-middle">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-semibold ${contract.color}`}
                         >
-                          {isTemplate ? (
-                            <FileBadge2 className="w-5 h-5" />
-                          ) : (
-                            contract.type.slice(0, 4).toUpperCase()
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-ui-text leading-none">
-                            {contract.name}
-                          </p>
-                          <span className="text-xs text-slate-400 mt-1 block">
-                            {isTemplate
-                              ? "Matrice globale"
-                              : "Rédigé par Adam Dupont"}
-                          </span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="p-4 text-sm font-medium text-slate-600 align-middle">
-                      {contract.tier}
-                    </TableCell>
-                    <TableCell className="p-4 align-middle">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold ${contract.color}`}
-                      >
-                        {contract.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="p-4 text-sm text-slate-500 align-middle">
-                      {contract.date}
-                    </TableCell>
+                          {contract.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="p-4 text-sm text-slate-500 align-middle">
+                        {contract.date}
+                      </TableCell>
 
-                    <TableCell className="p-4 pr-6 text-right align-middle">
-                      {/* Boutons d'action : Visibles uniquement au survol du tableau (premium UI style) */}
-                      <div className="flex items-center justify-end">
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 shadow-sm">
-                          <ActionBtn
-                            icon={PenTool}
-                            title="Éditer le modèle"
-                            onClick={() =>
-                              router.push(
-                                `/fr/contracts/${docType}/${contract.id}`,
-                              )
-                            }
-                          />
+                      <TableCell className="p-4 pr-6 text-right align-middle">
+                        {/* Boutons d'action : Visibles uniquement au survol du tableau (premium UI style) */}
+                        <div className="flex items-center justify-end">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 shadow-sm">
+                            <ActionBtn
+                              icon={PenTool}
+                              title="Éditer le modèle"
+                              onClick={() =>
+                                router.push(
+                                  `/fr/contracts/${docType}/${contract.id}`,
+                                )
+                              }
+                            />
 
-                          <ActionBtn
-                            icon={Eye}
-                            title="Inspecter"
-                            onClick={() => setInspectedContractId(contract.id)}
-                          />
+                            <ActionBtn
+                              icon={Eye}
+                              title="Inspecter"
+                              onClick={() =>
+                                setInspectedContractId(contract.id)
+                              }
+                            />
 
-                          {/* <ActionBtn
+                            {/* <ActionBtn
                               icon={Sparkles}
                               title="Analyser IA"
                               onClick={() =>
@@ -383,57 +394,64 @@ export default function ContractsPage() {
                               }
                             /> */}
 
-                          <ActionBtn
-                            icon={Download}
-                            title="Télécharger PDF"
-                            isNeutral
-                            onClick={() =>
-                              downloadContractPdf(
-                                contract.id,
-                                contract.class === EContractsListTabs.TEMPLATE
-                                  ? true
-                                  : false,
-                              )
-                            }
-                          />
+                            <ActionBtn
+                              icon={Download}
+                              title="Télécharger PDF"
+                              isNeutral
+                              onClick={() =>
+                                downloadContractPdf(
+                                  contract.id,
+                                  contract.class === EContractsListTabs.TEMPLATE
+                                    ? true
+                                    : false,
+                                )
+                              }
+                            />
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <Drawer
+          direction="right"
+          open={!!inspectedContractId}
+          onOpenChange={(open) => {
+            if (!open) {
+              setInspectedContractId(null);
+            }
+          }}
+        >
+          <DrawerContent className="w-125 h-full ml-auto rounded-l-2xl">
+            <DrawerHeader>
+              <DrawerTitle>Inspecteur : {inspectedContract?.name}</DrawerTitle>
+              <DrawerDescription>
+                Détails et actions pour ce contrat.
+              </DrawerDescription>
+            </DrawerHeader>
+
+            <div className="p-4">{/* Tes infos de contrat ici */}</div>
+          </DrawerContent>
+        </Drawer>
+
+        {/* 4. BARRE D'ACTIONS GROUPÉES (BULK ACTIONS) ANIMÉE */}
+        <AnimatePresence>
+          {selectedIds.length > 0 && (
+            <GroupedContractsActions selectedIds={selectedIds} />
+          )}
+        </AnimatePresence>
       </div>
 
-      <Drawer
-        direction="right"
-        open={!!inspectedContractId}
-        onOpenChange={(open) => {
-          if (!open) {
-            setInspectedContractId(null);
-          }
-        }}
-      >
-        <DrawerContent className="w-125 h-full ml-auto rounded-l-2xl">
-          <DrawerHeader>
-            <DrawerTitle>Inspecteur : {inspectedContract?.name}</DrawerTitle>
-            <DrawerDescription>
-              Détails et actions pour ce contrat.
-            </DrawerDescription>
-          </DrawerHeader>
-
-          <div className="p-4">{/* Tes infos de contrat ici */}</div>
-        </DrawerContent>
-      </Drawer>
-
-      {/* 4. BARRE D'ACTIONS GROUPÉES (BULK ACTIONS) ANIMÉE */}
-      <AnimatePresence>
-        {selectedIds.length > 0 && (
-          <GroupedContractsActions selectedIds={selectedIds} />
-        )}
-      </AnimatePresence>
-    </div>
+      <TemplateSelectionDialog
+        isTemplateModalOpened={isTemplateModalOpened}
+        setIsTemplateModalOpened={setIsTemplateModalOpened}
+        onSelectTemplate={() => {}}
+      />
+    </>
   );
 }

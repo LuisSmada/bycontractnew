@@ -15,11 +15,13 @@ import { toast } from "sonner";
 interface ISaveContractDialog {
   isSaveModalOpened: boolean;
   setIsSaveModalOpened: (value: SetStateAction<boolean>) => void;
+  onContractSave: VoidFunction;
 }
 
 export const SaveContractDialog = ({
   isSaveModalOpened,
   setIsSaveModalOpened,
+  onContractSave,
 }: ISaveContractDialog) => {
   return (
     <Dialog
@@ -50,10 +52,7 @@ export const SaveContractDialog = ({
             <div
               onClick={() => {
                 setIsSaveModalOpened(false);
-                toast.success("Enregistré comme Brouillon.", {
-                  position: "top-right",
-                  style: TOASTSTYLES.INFO,
-                });
+                onContractSave();
               }}
               className="w-full group flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-100 bg-white hover:border-indigo-500 hover:bg-indigo-50/30 transition-all text-left cursor-pointer shadow-sm hover:shadow-md"
             >

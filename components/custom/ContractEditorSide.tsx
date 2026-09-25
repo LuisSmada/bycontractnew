@@ -99,7 +99,7 @@ export const ContractEditorSide = ({
             <ContractModality
               document={document}
               isReadOnly={isReadOnly}
-              onContractValueChange={(value: number) =>
+              onContractValueChange={(value: string) =>
                 updateContractField("value", value)
               }
               onContractEffectiveDateChange={(date: string) =>

@@ -49,16 +49,14 @@ interface IContractGeneric {
   expirationDate: string;
   id: UniqueID | null;
   name: string;
-  value: number;
+  value: string;
   status: TContractStatus;
   idTemplate: string | null;
-  createdAt: string;
-  modifiedAt: string;
 }
 
-export interface ICreateContractRequest extends Exclude<
+export interface ICreateContractRequest extends Omit<
   IContractGeneric,
-  "id"
+  "id" | "status"
 > {
   idAuthor: UniqueID;
   idCompany: UniqueID;
@@ -88,6 +86,8 @@ export interface IFindContractResponse extends IContractGeneric {
     signedPdfUrl: string;
     modifiedAt: string;
   };
+  createdAt: string;
+  modifiedAt: string;
 }
 
 //****************** */
