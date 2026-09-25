@@ -6,6 +6,8 @@ const initialState: IApplicationState = {
     id: "1",
     firstName: "root",
     lastName: "root",
+    email: "root@root.com",
+    modifiedAt: "",
   },
   language: "fr",
   activeTab: {
