@@ -9,7 +9,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Download, Eye, FileBadge2, PenTool, Sparkles } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Eye,
+  FileBadge2,
+  PenTool,
+  Sparkles,
+} from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GroupedContractsActions } from "./GroupedContractsActions";
@@ -113,6 +121,7 @@ const MOCK_CONTRACTS: TMockContractType[] = [
 
 export default function ContractsPage() {
   const router = useRouter();
+  const ITEMS_PER_PAGE = 5;
 
   const { data: contracts } = useGetAllContractsQuery();
   const { data: templates } = useGetAllTemplatesQuery();
@@ -179,6 +188,8 @@ export default function ContractsPage() {
   const [isTemplateModalOpened, setIsTemplateModalOpened] =
     useState<boolean>(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+
   const globalCheckBoxRef = useRef<HTMLInputElement | null>(null);
 
   const inspectedContract = useMemo(() => {
@@ -228,6 +239,24 @@ export default function ContractsPage() {
   const isSomeSelected =
     selectedIds.length > 0 && selectedIds.length < filteredContracts.length;
 
+  const totalPages = Math.ceil(filteredContracts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+
+  const paginatedContracts = filteredContracts.slice(startIndex, endIndex);
+
+  const handlePrevious = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
   useEffect(() => {
     if (globalCheckBoxRef.current) {
       globalCheckBoxRef.current.indeterminate = isSomeSelected;
@@ -263,6 +292,7 @@ export default function ContractsPage() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           setSelectedIds={setSelectedIds}
+          setCurrentPage={setCurrentPage}
         />
 
         {/* 3. TABLEAU DE DONNÉES */}
@@ -296,7 +326,7 @@ export default function ContractsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredContracts.length === 0 ? (
+              {paginatedContracts.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={6}
@@ -306,7 +336,7 @@ export default function ContractsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredContracts.map((contract) => {
+                paginatedContracts.map((contract) => {
                   const isSelected = selectedIds.includes(contract.id);
                   const isTemplate =
                     contract.class === EContractsListTabs.TEMPLATE;
@@ -416,6 +446,51 @@ export default function ContractsPage() {
               )}
             </TableBody>
           </Table>
+
+          {filteredContracts.length > 0 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-white">
+              <div className="text-xs font-medium text-slate-500">
+                Affichage de{" "}
+                <span className="font-bold text-slate-700">
+                  {startIndex + 1}
+                </span>{" "}
+                à{" "}
+                <span className="font-bold text-slate-700">
+                  {Math.min(endIndex, filteredContracts.length)}
+                </span>{" "}
+                sur{" "}
+                <span className="font-bold text-slate-700">
+                  {filteredContracts.length}
+                </span>{" "}
+                documents
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePrevious}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Précédent
+                </button>
+
+                <div className="px-2 text-xs font-bold text-slate-400">
+                  Page <span className="text-slate-700">{currentPage}</span> /{" "}
+                  {totalPages}
+                </div>
+
+                <button
+                  onClick={handleNext}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white disabled:cursor-not-allowed transition-colors"
+                >
+                  Suivant
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <Drawer

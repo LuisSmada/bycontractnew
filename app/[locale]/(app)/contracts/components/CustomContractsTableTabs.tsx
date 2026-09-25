@@ -23,6 +23,7 @@ interface ICustomContractsTableTabs {
   activeTab: EContractsListTabs | string;
   setActiveTab: (activeTab: EContractsListTabs | string) => void;
   setSelectedIds: (ids: string[]) => void;
+  setCurrentPage: (value: number) => void;
 }
 
 export const CustomContractsTableTabs = ({
@@ -32,6 +33,7 @@ export const CustomContractsTableTabs = ({
   activeTab,
   setActiveTab,
   setSelectedIds,
+  setCurrentPage,
 }: ICustomContractsTableTabs) => {
   const counts = useMemo(() => {
     return {
@@ -124,6 +126,7 @@ export const CustomContractsTableTabs = ({
               onClick={() => {
                 setActiveTab(tab.id);
                 setSelectedIds([]);
+                setCurrentPage(1);
               }}
               className={`relative px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer ${isTabActiveClass}`}
             >
@@ -156,7 +159,10 @@ export const CustomContractsTableTabs = ({
             type="text"
             placeholder="Rechercher..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             className="pl-8 pr-4 py-1.5 bg-white rounded-lg text-xs w-48 transition-all input-form"
           />
         </div>
