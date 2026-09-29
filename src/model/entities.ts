@@ -56,3 +56,5 @@ export enum EContractsListTabs {
 }
 
 export type TContractEditorSidebarMode = "contract" | "template";
+
+export type TToastType = "success" | "info" | "warning" | "error";

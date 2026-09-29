@@ -16,7 +16,6 @@ import {
   Eye,
   FileBadge2,
   PenTool,
-  Sparkles,
 } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -36,7 +35,7 @@ import {
   IContractResponse,
   ITemplateResponse,
 } from "@/src/types/apiResponseType";
-import { EContractsListTabs } from "@/src/model/entities";
+import { EContractsListTabs, TContractStatus } from "@/src/model/entities";
 import { downloadContractPdf } from "./downloadContractPdf";
 import { useGetAllTemplatesQuery } from "@/src/store/api/templatesApiSlice";
 import { useGetAllContractsQuery } from "@/src/store/api/contractsSlice";
@@ -126,8 +125,6 @@ export default function ContractsPage() {
   const { data: contracts } = useGetAllContractsQuery();
   const { data: templates } = useGetAllTemplatesQuery();
 
-  console.log(contracts);
-
   const mapTemplates = (templates: ITemplateResponse[]) => {
     return templates.map((t) => {
       const day = new Date(t.createdAt).getDay().toString().padStart(2, "0");
@@ -151,23 +148,60 @@ export default function ContractsPage() {
 
   const mapContracts = (contracts: IContractResponse[]) => {
     return contracts.map((c) => {
-      const day = new Date(c.createdAt).getDay().toString().padStart(2, "0");
-      const month = new Date(c.createdAt)
-        .getMonth()
-        .toString()
-        .padStart(2, "0");
-      const year = new Date(c.createdAt).getFullYear();
+      const exDate = c.expirationDate;
+      console.log(exDate);
+      const day = new Date(exDate).getDay().toString().padStart(2, "0");
+      const month = new Date(exDate).getMonth().toString().padStart(2, "0");
+      const year = new Date(exDate).getFullYear();
+      const { status, color, tabClass } = sanitizeContratStatus(c.status);
       return {
         id: c.id,
         name: c.name,
         type: "CDI",
         tier: c.company.name,
-        status: c.status === "DRAFT" ? "Brouillon" : c.status,
-        class: EContractsListTabs.DRAFT,
-        date: `Créé le ${day}/${month}/${year}`,
-        color: "bg-indigo-100 text-indigo-700",
+        status: status,
+        class: tabClass,
+        date: `${day}/${month}/${year}`,
+        color: color,
       };
     });
+  };
+
+  const sanitizeContratStatus = (
+    status: TContractStatus,
+  ): { tabClass: EContractsListTabs; status: string; color: string } => {
+    switch (status) {
+      case "DRAFT":
+        return {
+          tabClass: EContractsListTabs.DRAFT,
+          status: "Brouillon",
+          color: "bg-indigo-100 text-indigo-700",
+        };
+      case "PENDING":
+        return {
+          tabClass: EContractsListTabs.PENDING,
+          status: "En attente",
+          color: "bg-amber-100 text-amber-700",
+        };
+      case "SIGNED":
+        return {
+          tabClass: EContractsListTabs.ACTIVE,
+          status: "Signé",
+          color: "bg-emerald-100 text-emerald-700",
+        };
+      case "RISKED":
+        return {
+          tabClass: EContractsListTabs.RISK,
+          status: "Risque",
+          color: "bg-rose-100 text-rose-700",
+        };
+      default:
+        return {
+          tabClass: EContractsListTabs.DRAFT,
+          status: "Brouillon",
+          color: "bg-indigo-100 text-indigo-700",
+        };
+    }
   };
 
   const adaptedTemplates = mapTemplates(templates ?? []);
@@ -318,7 +352,9 @@ export default function ContractsPage() {
                   Statut
                 </TableHead>
                 <TableHead className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Échéance
+                  {activeTab === EContractsListTabs.TEMPLATE
+                    ? "Date de création"
+                    : "Echéance"}
                 </TableHead>
                 <TableHead className="p-4 pr-6 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">
                   Actions rapides

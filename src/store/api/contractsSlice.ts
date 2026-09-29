@@ -3,6 +3,7 @@ import {
   IContractResponse,
   ICreateContractRequest,
   IFindContractResponse,
+  IUpdateContractRequest,
 } from "@/src/types/apiResponseType";
 
 export const contractsSlice = apiSlice.injectEndpoints({
@@ -25,11 +26,24 @@ export const contractsSlice = apiSlice.injectEndpoints({
         invalidatesTags: ["Contract"],
       },
     ),
+    updateContract: builder.mutation<
+      IFindContractResponse,
+      { id: string; request: Partial<IUpdateContractRequest> }
+    >({
+      query: ({ id, request }) => ({
+        url: `/contracts/${id}`,
+        method: "PATCH",
+        body: request,
+      }),
+      invalidatesTags: ["Contract"],
+    }),
   }),
+  overrideExisting: true,
 });
 
 export const {
   useCreateContractMutation,
   useGetAllContractsQuery,
   useGetContractByIdQuery,
+  useUpdateContractMutation,
 } = contractsSlice;

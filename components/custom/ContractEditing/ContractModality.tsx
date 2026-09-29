@@ -89,7 +89,7 @@ export const ContractModality: FC<IContractModality> = ({
           <input
             type="date"
             onChange={(e) => onContractExpirationDateChange(e.target.value)}
-            disabled={isReadOnly}
+            disabled={isReadOnly || document?.autoRenew}
             value={formatForDateInput(document?.expirationDate ?? "")}
             className="w-full text-xs font-medium border border-slate-200 rounded-lg px-2.5 py-2 bg-slate-50 focus:bg-white focus:border-indigo-500 outline-none transition-all disabled:opacity-60 text-slate-700"
           />

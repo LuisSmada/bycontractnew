@@ -13,12 +13,17 @@ export function assertsIsNumber(val: number): asserts val is number {
   }
 }
 
-export const sanitizeDate = (date: string) => {
-  const day = new Date(date).getDay().toString().padStart(2, "0");
-  const month = new Date(date).getMonth().toString().padStart(2, "0");
-  const year = new Date(date).getFullYear();
+export const sanitizeDate = (dateString: string) => {
+  const date = new Date(dateString);
 
-  return `${day}/${month}/${year}`;
+  if (isNaN(date.getTime())) return "Date invalide";
+
+  // Formate automatiquement en JJ/MM/AAAA (norme française)
+  return date.toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 };
 
 export const formatForDateInput = (dateString: string): string => {

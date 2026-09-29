@@ -104,6 +104,8 @@ export const ContractClassification: FC<IContractClassification> = ({
     onContractStakeholdersChange(updatedCompanies[0]);
   };
 
+  console.log(allStakeholders);
+
   return (
     <div className="space-y-4">
       <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">

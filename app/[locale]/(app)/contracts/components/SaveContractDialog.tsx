@@ -1,21 +1,19 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-} from "@/components/ui/dialog";
-import { TOASTSTYLES } from "@/src/utils/toastsCSSUtils";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import { TContractStatus, TToastType } from "@/src/model/entities";
 import { Button } from "@base-ui/react";
 import { CheckCircle2, Download, EditIcon } from "lucide-react";
 import { SetStateAction } from "react";
-import { toast } from "sonner";
 
 interface ISaveContractDialog {
   isSaveModalOpened: boolean;
   setIsSaveModalOpened: (value: SetStateAction<boolean>) => void;
-  onContractSave: VoidFunction;
+  onContractSave: (
+    status: TContractStatus,
+    message: string,
+    toastType?: TToastType,
+  ) => void;
 }
 
 export const SaveContractDialog = ({
@@ -52,7 +50,7 @@ export const SaveContractDialog = ({
             <div
               onClick={() => {
                 setIsSaveModalOpened(false);
-                onContractSave();
+                onContractSave("DRAFT", "Enregistré comme brouillon.", "info");
               }}
               className="w-full group flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-100 bg-white hover:border-indigo-500 hover:bg-indigo-50/30 transition-all text-left cursor-pointer shadow-sm hover:shadow-md"
             >
@@ -73,10 +71,11 @@ export const SaveContractDialog = ({
             <div
               onClick={() => {
                 setIsSaveModalOpened(false);
-                toast.success("Document figé, prêt à être signé.", {
-                  position: "top-right",
-                  style: TOASTSTYLES.SUCCESS,
-                });
+                onContractSave(
+                  "PENDING",
+                  "Document figé, prêt à être signé.",
+                  "success",
+                );
               }}
               className="w-full group flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-100 bg-white hover:border-emerald-500 hover:bg-emerald-50/30 transition-all text-left cursor-pointer shadow-sm hover:shadow-md"
             >

@@ -12,12 +12,16 @@ import { useEditor, useEditorState } from "@tiptap/react";
 import Subscript from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { SaveContractDialog } from "@/app/[locale]/(app)/contracts/components/SaveContractDialog";
-import { useCreateContractMutation } from "@/src/store/api/contractsSlice";
+import {
+  useCreateContractMutation,
+  useUpdateContractMutation,
+} from "@/src/store/api/contractsSlice";
 import { ContractEditorSide } from "./ContractEditorSide";
 import { useGetCurrentUserQuery } from "@/src/store/api/authApiSlice";
 import { assertsNonNullable } from "@/src/helpers/generic";
 import {
   ICreateContractRequest,
+  IUpdateContractRequest,
   TContractEditorDocument,
 } from "@/src/types/apiResponseType";
 import { ContractEditorContextBar } from "./ContractEditorContextBar";
@@ -25,6 +29,7 @@ import { UnsavedChangesDialog } from "@/app/[locale]/(app)/contracts/components/
 import { toast } from "sonner";
 import { TOASTSTYLES } from "@/src/utils/toastsCSSUtils";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import { TContractStatus, TToastType } from "@/src/model/entities";
 
 interface IContractEditor {
   document: TContractEditorDocument | null;
@@ -44,7 +49,9 @@ export const ContractEditor = (props: IContractEditor) => {
   const [isSaveModalOpened, setIsSaveModalOpened] = useState(false);
   const [isUnsavedModalOpened, setIsUnsavedModalOpened] = useState(false);
 
-  const [createContract, { isLoading }] = useCreateContractMutation();
+  const [createContract, { isLoading: isLodingCreateContract }] =
+    useCreateContractMutation();
+  const [updateContrat] = useUpdateContractMutation();
 
   const documentContent = workingDocument?.body ?? "";
 
@@ -195,77 +202,112 @@ export const ContractEditor = (props: IContractEditor) => {
     },
   });
 
-  const handleSaveContract = async () => {
-    console.log("Enter");
+  const handleSaveContract = async (
+    status: TContractStatus,
+    message: string,
+    toastType: TToastType = "info",
+  ) => {
     try {
-      let payload: ICreateContractRequest | null = null;
-      if (!initialDocument) {
-        if (workingDocument && !workingDocument?.isTemplate) {
-          payload = {
-            autoRenew: workingDocument?.autoRenew ?? false,
-            contractType: workingDocument?.contractType,
-            effectiveDate: workingDocument?.effectiveDate,
-            expirationDate: workingDocument?.expirationDate,
-            name: workingDocument?.name,
-            value: workingDocument?.value,
+      // 1. Validation de sécurité rapide
+      if (!workingDocument) {
+        setIsSaveModalOpened(false);
+        // CORRECTION : Utilisation de toast.warning au lieu de toast.success
+        toast.warning("Les données ne sont pas complètes pour la sauvegarde.", {
+          position: "top-right",
+          style: TOASTSTYLES.WARNING,
+        });
+        return; // On arrête la fonction ici
+      }
+
+      // Optionnel : Gérer ici la logique spécifique aux templates si besoin
+      if (workingDocument.isTemplate) {
+        // Logique de sauvegarde de template...
+        // return;
+      } else {
+        // 2. Construction du Payload Commun (Mutualisation du code)
+        const basePayload = {
+          autoRenew: workingDocument.autoRenew ?? false,
+          contractType: workingDocument.contractType,
+          effectiveDate: workingDocument.effectiveDate,
+          expirationDate: workingDocument.autoRenew
+            ? null
+            : workingDocument.expirationDate,
+          name: workingDocument.name,
+          value: workingDocument?.value,
+          idCompany: workingDocument.company?.id,
+          bodyJson: workingDocument.body,
+          bodyText: editor?.getText() ?? "",
+          contractStatus: status,
+        };
+
+        // 3. Appel de l'API (Création vs Mise à jour)
+        if (!initialDocument) {
+          // C'est un nouveau contrat
+          const createPayload: ICreateContractRequest = {
+            ...basePayload,
             idTemplate: null,
-            idAuthor: currentUser.id,
-            idCompany: workingDocument.company?.id,
-            bodyJson: workingDocument.body,
-            bodyText: editor?.getText() ?? "",
+            idAuthor: currentUser.id, // Requis uniquement pour la création
           };
-        }
-      } else {
-        if (workingDocument && !workingDocument?.isTemplate) {
-          payload = {
-            autoRenew: workingDocument.autoRenew,
-            contractType: workingDocument.contractType,
-            effectiveDate: workingDocument.effectiveDate,
-            expirationDate: workingDocument.expirationDate,
-            name: workingDocument.name,
-            value: workingDocument.value,
-            idTemplate: workingDocument.idTemplate,
-            idAuthor: workingDocument.author?.id,
-            idCompany: workingDocument.company?.id,
-            bodyJson: workingDocument.body,
-            bodyText: editor?.getText() ?? "",
-          };
+          await createContract(createPayload).unwrap();
+        } else {
+          console.log("Update called");
+          console.log("basePayload", basePayload);
+          // C'est une mise à jour
+          await updateContrat({
+            id: workingDocument.id ?? "",
+            request: basePayload as Partial<IUpdateContractRequest>,
+          }).unwrap();
         }
       }
 
-      console.log(payload);
+      // 4. Succès de l'opération
+      setIsSaveModalOpened(false);
 
-      if (payload) {
-        await createContract(payload).unwrap();
-
-        setIsSaveModalOpened(false);
-
-        toast.success("Enregistré comme Brouillon.", {
+      if (toastType === "success") {
+        toast.success(message, {
           position: "top-right",
-          style: TOASTSTYLES.INFO,
+          style: TOASTSTYLES.SUCCESS, // CORRECTION : Était INFO
         });
-
-        router.back();
       } else {
-        setIsSaveModalOpened(false);
-
-        toast.success("Les donnees ne sont pas completes pour la sauvegarde", {
+        toast.info(message, {
           position: "top-right",
           style: TOASTSTYLES.INFO,
         });
       }
+
+      // Retour à la page précédente
+      router.back();
     } catch (e: unknown) {
       console.error(e);
       const error = e as FetchBaseQueryError;
-      if (error?.status === 401 || error?.status === 403) {
-        toast.error("Des informations sont manquantes. Veuillez réessayer.", {
-          position: "top-right",
-          style: TOASTSTYLES.ERROR,
-        });
+
+      // Bonne pratique : fermer la modale même si ça plante, pour ne pas bloquer l'utilisateur
+      setIsSaveModalOpened(false);
+
+      // CORRECTION : Codes HTTP adaptés
+      if (error?.status === 400 || error?.status === 422) {
+        toast.error(
+          "Des informations sont manquantes ou invalides. Veuillez vérifier les champs.",
+          {
+            position: "top-right",
+            style: TOASTSTYLES.ERROR,
+          },
+        );
+      } else if (error?.status === 401 || error?.status === 403) {
+        toast.error(
+          "Vous n'avez pas les droits nécessaires ou votre session a expiré.",
+          {
+            position: "top-right",
+            style: TOASTSTYLES.ERROR,
+          },
+        );
       } else {
         toast.error(
           "Une erreur est survenue lors de la connexion au serveur.",
-          { position: "top-right", style: TOASTSTYLES.ERROR },
+          {
+            position: "top-right",
+            style: TOASTSTYLES.ERROR,
+          },
         );
       }
     }

@@ -50,7 +50,7 @@ export const ContractEditorSide = ({
   const isDocumentContract = !document.isTemplate;
   const isDocumentTemplate = document.isTemplate;
 
-  const isReadOnly = isDocumentContract && document.status === "SIGNED";
+  const isReadOnly = isDocumentContract && document.contractStatus === "SIGNED";
 
   return (
     <div className="w-80 bg-white border-l border-slate-200 flex flex-col shrink-0 z-10 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] md:flex h-screen">

@@ -15,7 +15,6 @@ import {
   LayoutTemplate,
   Search,
   User,
-  X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -56,48 +55,48 @@ const MOCK_TEMPLATES: IFindTemplate[] = [
     createdAt: "28 Août 2026",
     category: "Ressources Humaines",
   },
-  {
-    id: "4",
-    name: "Bail Commercial (3-6-9)",
-    authorName: "Adam Dupont",
-    createdAt: "15 Juil 2026",
-    category: "Immobilier",
-  },
-  {
-    id: "5",
-    name: "Conditions Générales de Vente (CGV)",
-    authorName: "Sophie Dubois",
-    createdAt: "02 Juin 2026",
-    category: "Commercial",
-  },
-  {
-    id: "6",
-    name: "Pacte d'Actionnaires simplifé",
-    authorName: "Adam Dupont",
-    createdAt: "10 Mai 2026",
-    category: "Corporate",
-  },
-  {
-    id: "7",
-    name: "Pacte d'Actionnaires simplifé",
-    authorName: "Adam Dupont",
-    createdAt: "10 Mai 2026",
-    category: "Corporate",
-  },
-  {
-    id: "8",
-    name: "Pacte d'Actionnaires simplifé",
-    authorName: "Adam Dupont",
-    createdAt: "10 Mai 2026",
-    category: "Corporate",
-  },
-  {
-    id: "9",
-    name: "Pacte d'Actionnaires simplifé",
-    authorName: "Adam Dupont",
-    createdAt: "10 Mai 2026",
-    category: "Corporate",
-  },
+  //   {
+  //     id: "4",
+  //     name: "Bail Commercial (3-6-9)",
+  //     authorName: "Adam Dupont",
+  //     createdAt: "15 Juil 2026",
+  //     category: "Immobilier",
+  //   },
+  //   {
+  //     id: "5",
+  //     name: "Conditions Générales de Vente (CGV)",
+  //     authorName: "Sophie Dubois",
+  //     createdAt: "02 Juin 2026",
+  //     category: "Commercial",
+  //   },
+  //   {
+  //     id: "6",
+  //     name: "Pacte d'Actionnaires simplifé",
+  //     authorName: "Adam Dupont",
+  //     createdAt: "10 Mai 2026",
+  //     category: "Corporate",
+  //   },
+  //   {
+  //     id: "7",
+  //     name: "Pacte d'Actionnaires simplifé",
+  //     authorName: "Adam Dupont",
+  //     createdAt: "10 Mai 2026",
+  //     category: "Corporate",
+  //   },
+  //   {
+  //     id: "8",
+  //     name: "Pacte d'Actionnaires simplifé",
+  //     authorName: "Adam Dupont",
+  //     createdAt: "10 Mai 2026",
+  //     category: "Corporate",
+  //   },
+  //   {
+  //     id: "9",
+  //     name: "Pacte d'Actionnaires simplifé",
+  //     authorName: "Adam Dupont",
+  //     createdAt: "10 Mai 2026",
+  //     category: "Corporate",
+  //   },
 ];
 
 export const TemplateSelectionDialog = ({
@@ -127,9 +126,9 @@ export const TemplateSelectionDialog = ({
         Modification clé : max-w-[1080px] w-[90vw] 
         Cela force le modal à prendre une grande largeur tout en gardant des marges sur les petits écrans.
       */}
-      <DialogContent className=" w-[95vw] max-w-270 sm:max-w-[1080px]  h-[72vh] max-h-[72vh]  p-0 gap-0 bg-slate-50 border-slate-200 shadow-2xl rounded-3xl overflow-hidden text-left">
+      <DialogContent className="flex flex-col w-[95vw] max-w-270 sm:max-w-270  h-[72vh] max-h-[72vh]  p-0 gap-0 bg-slate-50 border-slate-200 shadow-2xl rounded-3xl overflow-hidden text-left">
         {/* HEADER & RECHERCHE (Plus aéré avec p-8) */}
-        <DialogHeader className="bg-white border-b border-slate-100 p-8 relative overflow-hidden shrink-0">
+        <DialogHeader className="bg-white border-b border-slate-100 p-8 relative overflow-hidden shrink-0 ">
           <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-50/50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
 
           <div className="flex items-start justify-between relative z-10">
@@ -165,7 +164,7 @@ export const TemplateSelectionDialog = ({
 
         {/* CONTENU (GRILLE DE MODÈLES) */}
         {/* On utilise grid-cols-1 md:grid-cols-2 lg:grid-cols-3 pour aérer et gap-6 */}
-        <div className="py-7 px-8 overflow-y-auto max-h-[65vh] custom-scrollbar bg-slate-50/50">
+        <div className="py-7 px-8 overflow-y-auto max-h-[65vh] custom-scrollbar bg-slate-50/50 ">
           {filteredTemplates.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="w-20 h-20 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-5">

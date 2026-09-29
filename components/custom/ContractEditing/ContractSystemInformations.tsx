@@ -1,4 +1,4 @@
-import { sanitizeDate } from "@/src/helpers/generic";
+import { formatForDateInput, sanitizeDate } from "@/src/helpers/generic";
 import { TContractEditorDocument } from "@/src/types/apiResponseType";
 import { Clock, FileBadge2, User } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -14,6 +14,11 @@ export const ContractSystemInformations = (
   const path = usePathname();
   const isNewDocument = path.includes("new");
 
+  console.log(
+    "props.document?.modifiedAt",
+    formatForDateInput(props.document?.modifiedAt ?? ""),
+  );
+
   return (
     <div className="space-y-3 pt-6 border-t border-slate-100">
       <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
@@ -25,7 +30,8 @@ export const ContractSystemInformations = (
           <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-200/60">
             <span className="text-slate-500 font-semibold">Statut actuel</span>
             <span className="font-bold text-amber-600 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-md">
-              {!props.document?.isTemplate && props.document?.status === "DRAFT"
+              {!props.document?.isTemplate &&
+              props.document?.contractStatus === "DRAFT"
                 ? "Brouillon"
                 : "Autre"}
             </span>

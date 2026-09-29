@@ -94,11 +94,13 @@ export const ContractEditorContextBar: FC<IContractEditorContextBar> = ({
         <Button
           className="px-4 py-1.5 bg-ui-brand hover:bg-ui-brandHover text-white text-xs font-bold rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-2"
           onClick={() => setIsSaveModalOpened(true)}
-          disabled={cannotSave ?? false}
+          disabled={(cannotSave || !isDocumentModified) ?? false}
         >
           <Save className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Sauvegarder</span>
-          <span className="sm:hidden">Sauvegarder</span>
+          <span className="hidden sm:inline">
+            {isNewDocument ? "Sauvegarder" : "Mettre à jour"}
+          </span>
+          {/* <span className="sm:hidden">Sauvegarder</span> */}
         </Button>
       </div>
     </div>

@@ -46,18 +46,15 @@ interface IContractGeneric {
   autoRenew: boolean;
   contractType: TContractType;
   effectiveDate: string;
-  expirationDate: string;
+  expirationDate: string | null;
   id: UniqueID | null;
   name: string;
   value: string;
-  status: TContractStatus;
+  contractStatus: TContractStatus;
   idTemplate: string | null;
 }
 
-export interface ICreateContractRequest extends Omit<
-  IContractGeneric,
-  "id" | "status"
-> {
+export interface ICreateContractRequest extends Omit<IContractGeneric, "id"> {
   idAuthor: UniqueID;
   idCompany: UniqueID;
   bodyJson: object;
@@ -75,6 +72,7 @@ export interface IContractResponse {
   };
   createdAt: string;
   modifiedAt: string;
+  expirationDate: string;
 }
 
 export interface IFindContractResponse extends IContractGeneric {
@@ -88,6 +86,20 @@ export interface IFindContractResponse extends IContractGeneric {
   };
   createdAt: string;
   modifiedAt: string;
+  version: number;
+}
+
+export interface IUpdateContractRequest {
+  name: string;
+  idCompany: string;
+  bodyText: string;
+  bodyJson: object;
+  effectiveDate: string;
+  expirationDate: string | null;
+  contractType: TContractType;
+  contractStatus: TContractStatus;
+  value: string;
+  autoRenew: boolean;
 }
 
 //****************** */
@@ -101,7 +113,10 @@ export type TContractEditorTemplate = IFindTemplate & {
   isTemplate: true;
 };
 
-export type TContractEditorContract = Omit<IFindContractResponse, "content"> & {
+export type TContractEditorContract = Omit<
+  IFindContractResponse,
+  "content" | "version"
+> & {
   isTemplate: false;
   body: object;
 };
