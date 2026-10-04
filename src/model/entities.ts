@@ -7,6 +7,7 @@ export interface IApplicationState {
   language: string;
   activeTab: IDashboardTabsListType;
   currentPath: string;
+  selectedTemplateId: string | null;
 }
 
 export interface ILanguageApplication {
@@ -44,7 +45,24 @@ export interface IMainContactCompany {
 }
 
 export type TContractType = "NDA" | "CDI" | "BAIL" | "SERVICE";
-export type TContractStatus = "DRAFT" | "PENDING" | "SIGNED" | "RISKED";
+export type TContractStatus =
+  | "DRAFT"
+  | "IN_REVIEW"
+  | "PENDING"
+  | "SIGNED"
+  | "ACTIVE"
+  | "RISKED"
+  | "ËXPIRED"
+  | "TERMINATED";
+// DRAFT
+// IN_REVIEW
+// AWAITING_SIGNATURE
+// SIGNED
+// ACTIVE
+// EXPIRED
+// TERMINATED
+
+// ARCHIVED: archived = true when is expired
 
 export enum EContractsListTabs {
   ALL = "ALL",

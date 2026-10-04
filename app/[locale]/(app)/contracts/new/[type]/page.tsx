@@ -1,79 +1,36 @@
 "use client";
 
 import { ContractEditor } from "@/components/custom/ContractEditor";
-import { assertsNonNullable } from "@/src/helpers/generic";
-import { IUser } from "@/src/model/entities";
-import { useGetCurrentUserQuery } from "@/src/store/api/authApiSlice";
-import {
-  TContractEditorContract,
-  TContractEditorDocument,
-  TContractEditorTemplate,
-} from "@/src/types/apiResponseType";
-import { useParams } from "next/navigation";
+import { LoadingScreen } from "@/components/custom/LoadingScreen";
+import { useGetTemplateByIdQuery } from "@/src/store/api/templatesApiSlice";
+import { useParams, useSearchParams } from "next/navigation";
 
 export default function NewContractPage() {
   const { type } = useParams<{
     type: "template" | "contract";
   }>();
 
-  // const { data: currentUser } = useGetCurrentUserQuery();
-  // assertsNonNullable(currentUser);
+  const searchParams = useSearchParams();
 
-  // const createNewContract = (currentUser: IUser): TContractEditorContract => ({
-  //   id: null,
-  //   name: "",
-  //   body: {},
-  //   isTemplate: false,
-  //   contractType: "NDA",
-  //   effectiveDate: new Date().toISOString(),
-  //   expirationDate: "",
-  //   autoRenew: false,
-  //   value: 0,
-  //   status: "DRAFT",
-  //   createdAt: new Date().toISOString(),
-  //   modifiedAt: new Date().toISOString(),
-  //   author: {
-  //     id: currentUser.id,
-  //     firstName: currentUser.firstName,
-  //     lastName: currentUser.lastName,
-  //   },
-  //   idTemplate: "",
-  //   company: {
-  //     id: "",
-  //     name: "",
-  //     mainContact: {
-  //       firstName: "",
-  //       lastName: "",
-  //       email: "",
-  //       phone: "",
-  //     },
-  //     siret: "",
-  //   },
-  // });
+  const templateId = searchParams.get("templateId") ?? "";
+  const { data, isLoading } = useGetTemplateByIdQuery(templateId, {
+    skip: !templateId,
+  });
 
-  // const createNewTemplate = (currentUser: IUser): TContractEditorTemplate => ({
-  //   id: "",
-  //   name: "",
-  //   body: {},
-  //   isTemplate: true,
-  //   createdAt: new Date().toISOString(),
-  //   modifiedAt: new Date().toISOString(),
-  //   author: {
-  //     id: currentUser.id,
-  //     firstName: currentUser.firstName,
-  //     lastName: currentUser.lastName,
-  //   },
-  //   variablesDefinition: "",
-  // });
+  console.log("templateId", templateId);
+  console.log("data", data);
 
-  // const defaultDocument =
-  //   type === "contract"
-  //     ? createNewContract(currentUser)
-  //     : createNewTemplate(currentUser);
+  const templateContent = data ? data.body : null;
 
   return (
-    <div>
-      <ContractEditor document={null} />
-    </div>
+    <>
+      {templateId && isLoading ? (
+        <LoadingScreen message="Chargement du modèle sélectionné..." />
+      ) : (
+        <div className="flex-1">
+          <ContractEditor document={null} templateContent={templateContent} />
+        </div>
+      )}
+    </>
   );
 }

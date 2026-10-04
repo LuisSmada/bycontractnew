@@ -38,6 +38,7 @@ export interface ICreateCompanyRequest {
   name: string;
   siret: string;
   address: string;
+  mainContact: IMainContactCompany;
 }
 
 // ------------------CONTRACT------------------------//

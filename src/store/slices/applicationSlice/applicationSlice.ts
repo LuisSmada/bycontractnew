@@ -15,6 +15,7 @@ const initialState: IApplicationState = {
     title: "LoginPage",
   },
   currentPath: "/",
+  selectedTemplateId: null,
 };
 
 export const applicationSlice = createSlice({

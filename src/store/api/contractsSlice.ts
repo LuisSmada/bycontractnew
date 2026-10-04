@@ -37,7 +37,15 @@ export const contractsSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Contract"],
     }),
+    deleteContract: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/contracts/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Contract"],
+    }),
   }),
+
   overrideExisting: true,
 });
 
@@ -46,4 +54,5 @@ export const {
   useGetAllContractsQuery,
   useGetContractByIdQuery,
   useUpdateContractMutation,
+  useDeleteContractMutation,
 } = contractsSlice;

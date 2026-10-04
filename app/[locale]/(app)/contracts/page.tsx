@@ -16,6 +16,7 @@ import {
   Eye,
   FileBadge2,
   PenTool,
+  Trash2,
 } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -39,10 +40,10 @@ import { EContractsListTabs, TContractStatus } from "@/src/model/entities";
 import { downloadContractPdf } from "./downloadContractPdf";
 import { useGetAllTemplatesQuery } from "@/src/store/api/templatesApiSlice";
 import { useGetAllContractsQuery } from "@/src/store/api/contractsSlice";
-import {
-  IFindTemplate,
-  TemplateSelectionDialog,
-} from "./components/TemplateSelectionDialog";
+import { TemplateSelectionDialog } from "./components/TemplateSelectionDialog";
+import { LoadingScreen } from "@/components/custom/LoadingScreen";
+import { ErrorScreen } from "@/components/custom/ErrorScreen";
+import { ConfirmationDeleteModal } from "@/components/custom/ConfirmationDeleteModal";
 
 type TMockContractType = {
   id: string;
@@ -122,8 +123,18 @@ export default function ContractsPage() {
   const router = useRouter();
   const ITEMS_PER_PAGE = 5;
 
-  const { data: contracts } = useGetAllContractsQuery();
-  const { data: templates } = useGetAllTemplatesQuery();
+  const {
+    data: contracts,
+    isLoading: isLoadingContracts,
+    isError: isErrorContracts,
+    refetch: refetchContracts,
+  } = useGetAllContractsQuery();
+  const {
+    data: templates,
+    isLoading: isLoadingTemplates,
+    isError: isErrorTemplates,
+    refetch: refetchTemplates,
+  } = useGetAllTemplatesQuery();
 
   const mapTemplates = (templates: ITemplateResponse[]) => {
     return templates.map((t) => {
@@ -222,6 +233,12 @@ export default function ContractsPage() {
   const [isTemplateModalOpened, setIsTemplateModalOpened] =
     useState<boolean>(false);
 
+  const [isDeleteModalOpened, setIsDeleteModalOpened] =
+    useState<boolean>(false);
+
+  const [documentNameToDelete, setDocumentNameToDelete] = useState<string>("");
+  const [idDocumentToDelete, setIdDocumentToDelete] = useState<string>("");
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const globalCheckBoxRef = useRef<HTMLInputElement | null>(null);
@@ -291,11 +308,30 @@ export default function ContractsPage() {
     }
   };
 
+  const handleRefetchAll = () => {
+    refetchContracts();
+    refetchTemplates();
+  };
+
   useEffect(() => {
     if (globalCheckBoxRef.current) {
       globalCheckBoxRef.current.indeterminate = isSomeSelected;
     }
   }, [isSomeSelected]);
+
+  if (isLoadingContracts && isLoadingTemplates) {
+    return <LoadingScreen />;
+  }
+
+  if (isErrorContracts && isErrorTemplates) {
+    return (
+      <ErrorScreen
+        title="Erreur de chargement"
+        message="Certaines données n'ont pas pu être récupérées."
+        onRetry={handleRefetchAll}
+      />
+    );
+  }
 
   return (
     <>
@@ -461,6 +497,16 @@ export default function ContractsPage() {
                             /> */}
 
                             <ActionBtn
+                              icon={Trash2}
+                              title="Supprimer le document"
+                              onClick={() => {
+                                setIdDocumentToDelete(contract.id);
+                                setDocumentNameToDelete(contract.name);
+                                setIsDeleteModalOpened(true);
+                              }}
+                            />
+
+                            <ActionBtn
                               icon={Download}
                               title="Télécharger PDF"
                               isNeutral
@@ -561,7 +607,14 @@ export default function ContractsPage() {
       <TemplateSelectionDialog
         isTemplateModalOpened={isTemplateModalOpened}
         setIsTemplateModalOpened={setIsTemplateModalOpened}
-        onSelectTemplate={() => {}}
+        templates={templates ?? []}
+      />
+
+      <ConfirmationDeleteModal
+        isOpen={isDeleteModalOpened}
+        onClose={() => setIsDeleteModalOpened(false)}
+        documentName={documentNameToDelete}
+        idDocumentToDelete={idDocumentToDelete}
       />
     </>
   );

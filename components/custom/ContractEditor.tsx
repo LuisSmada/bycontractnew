@@ -1,6 +1,6 @@
 "use client";
 
-import { SetStateAction, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ContractActor } from "./ContractActor";
 import { usePathname, useRouter } from "next/navigation";
 import { ResizableImage } from "./ResizableImage";
@@ -26,13 +26,17 @@ import {
 } from "@/src/types/apiResponseType";
 import { ContractEditorContextBar } from "./ContractEditorContextBar";
 import { UnsavedChangesDialog } from "@/app/[locale]/(app)/contracts/components/UnsavedChangesDialog";
-import { toast } from "sonner";
-import { TOASTSTYLES } from "@/src/utils/toastsCSSUtils";
-import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { TContractStatus, TToastType } from "@/src/model/entities";
+import { responseErrorApi } from "@/src/utils/responseErrorApi";
+import {
+  operationInfo,
+  operationSuccess,
+  operationWarning,
+} from "@/src/utils/operationsToasts";
 
 interface IContractEditor {
   document: TContractEditorDocument | null;
+  templateContent?: object | null;
 }
 
 export const ContractEditor = (props: IContractEditor) => {
@@ -49,7 +53,7 @@ export const ContractEditor = (props: IContractEditor) => {
   const [isSaveModalOpened, setIsSaveModalOpened] = useState(false);
   const [isUnsavedModalOpened, setIsUnsavedModalOpened] = useState(false);
 
-  const [createContract, { isLoading: isLodingCreateContract }] =
+  const [createContract, { isLoading: isLoadingCreateContract }] =
     useCreateContractMutation();
   const [updateContrat] = useUpdateContractMutation();
 
@@ -65,6 +69,7 @@ export const ContractEditor = (props: IContractEditor) => {
           firstName: currentUser.firstName,
           lastName: currentUser.lastName,
         },
+        body: props.templateContent ? props.templateContent : {},
       } as TContractEditorDocument)
     : workingDocument;
 
@@ -175,7 +180,7 @@ export const ContractEditor = (props: IContractEditor) => {
         },
       }),
     ],
-    content: documentContent,
+    content: props.templateContent ?? documentContent,
     onUpdate: ({ editor }) => {
       updateField("body", editor.getJSON());
     },
@@ -208,14 +213,11 @@ export const ContractEditor = (props: IContractEditor) => {
     toastType: TToastType = "info",
   ) => {
     try {
-      // 1. Validation de sécurité rapide
       if (!workingDocument) {
         setIsSaveModalOpened(false);
-        // CORRECTION : Utilisation de toast.warning au lieu de toast.success
-        toast.warning("Les données ne sont pas complètes pour la sauvegarde.", {
-          position: "top-right",
-          style: TOASTSTYLES.WARNING,
-        });
+        operationWarning(
+          "Les données ne sont pas complètes pour la sauvegarde.",
+        );
         return; // On arrête la fonction ici
       }
 
@@ -224,7 +226,6 @@ export const ContractEditor = (props: IContractEditor) => {
         // Logique de sauvegarde de template...
         // return;
       } else {
-        // 2. Construction du Payload Commun (Mutualisation du code)
         const basePayload = {
           autoRenew: workingDocument.autoRenew ?? false,
           contractType: workingDocument.contractType,
@@ -240,19 +241,14 @@ export const ContractEditor = (props: IContractEditor) => {
           contractStatus: status,
         };
 
-        // 3. Appel de l'API (Création vs Mise à jour)
         if (!initialDocument) {
-          // C'est un nouveau contrat
           const createPayload: ICreateContractRequest = {
             ...basePayload,
             idTemplate: null,
-            idAuthor: currentUser.id, // Requis uniquement pour la création
+            idAuthor: currentUser.id,
           };
           await createContract(createPayload).unwrap();
         } else {
-          console.log("Update called");
-          console.log("basePayload", basePayload);
-          // C'est une mise à jour
           await updateContrat({
             id: workingDocument.id ?? "",
             request: basePayload as Partial<IUpdateContractRequest>,
@@ -264,52 +260,15 @@ export const ContractEditor = (props: IContractEditor) => {
       setIsSaveModalOpened(false);
 
       if (toastType === "success") {
-        toast.success(message, {
-          position: "top-right",
-          style: TOASTSTYLES.SUCCESS, // CORRECTION : Était INFO
-        });
+        operationSuccess(message);
       } else {
-        toast.info(message, {
-          position: "top-right",
-          style: TOASTSTYLES.INFO,
-        });
+        operationInfo(message);
       }
 
-      // Retour à la page précédente
       router.back();
     } catch (e: unknown) {
-      console.error(e);
-      const error = e as FetchBaseQueryError;
-
-      // Bonne pratique : fermer la modale même si ça plante, pour ne pas bloquer l'utilisateur
       setIsSaveModalOpened(false);
-
-      // CORRECTION : Codes HTTP adaptés
-      if (error?.status === 400 || error?.status === 422) {
-        toast.error(
-          "Des informations sont manquantes ou invalides. Veuillez vérifier les champs.",
-          {
-            position: "top-right",
-            style: TOASTSTYLES.ERROR,
-          },
-        );
-      } else if (error?.status === 401 || error?.status === 403) {
-        toast.error(
-          "Vous n'avez pas les droits nécessaires ou votre session a expiré.",
-          {
-            position: "top-right",
-            style: TOASTSTYLES.ERROR,
-          },
-        );
-      } else {
-        toast.error(
-          "Une erreur est survenue lors de la connexion au serveur.",
-          {
-            position: "top-right",
-            style: TOASTSTYLES.ERROR,
-          },
-        );
-      }
+      responseErrorApi(e);
     }
   };
 

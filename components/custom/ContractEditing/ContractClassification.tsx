@@ -14,7 +14,7 @@ import {
   TContractEditorContract,
 } from "@/src/types/apiResponseType";
 import { Building2, Mail, Plus, Search, X } from "lucide-react";
-import React, { FC, useEffect, useState } from "react";
+import { FC } from "react";
 
 type TTypeContractItem = { value: TContractType; label: string };
 

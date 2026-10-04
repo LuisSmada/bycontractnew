@@ -6,9 +6,39 @@ import { CircleCheck, Euro, Pencil, TriangleAlert } from "lucide-react";
 import { DashboardCard } from "./DashboardCard";
 import { DashboardTask } from "./DashboardTask";
 import { DashboardStatusChart } from "./DashboardStatusChart";
+import { useGetAllContractsQuery } from "@/src/store/api/contractsSlice";
+import { LoadingScreen } from "@/components/custom/LoadingScreen";
+import { ErrorScreen } from "@/components/custom/ErrorScreen";
 
 export default function DashboardPage() {
   const currentUser = useAppSelector(currentUserSelector);
+  const { data, isLoading, isError, refetch } = useGetAllContractsQuery();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (isError) {
+    return (
+      <ErrorScreen
+        title="Erreur de chargement"
+        message="Certaines données n'ont pas pu être récupérées."
+        onRetry={refetch}
+      />
+    );
+  }
+
+  const contracts = data ?? [];
+
+  const activeContractsCount = contracts?.filter(
+    (c) => c.status === "ACTIVE",
+  ).length;
+  const pendingContractsCount = contracts?.filter(
+    (c) => c.status === "PENDING",
+  ).length;
+  const riskedContractsCount = contracts?.filter(
+    (c) => c.status === "RISKED",
+  ).length;
 
   const countTasks = 3;
 
@@ -48,8 +78,8 @@ export default function DashboardPage() {
           Icon={CircleCheck}
           textColor={"text-emerald-600"}
           bgColor={"bg-emerald-50/80"}
-          statsNumber={"3"}
-          statsDescription={"+12%"}
+          statsNumber={activeContractsCount.toString()}
+          statsDescription={"+0%"}
         />
 
         <DashboardCard
@@ -57,7 +87,7 @@ export default function DashboardPage() {
           Icon={Pencil}
           textColor={"text-amber-600"}
           bgColor={"bg-amber-50"}
-          statsNumber={"2"}
+          statsNumber={pendingContractsCount.toString()}
           statsDescription={"Action(s) requise(s)"}
         />
 
@@ -66,7 +96,7 @@ export default function DashboardPage() {
           Icon={TriangleAlert}
           textColor={"text-rose-600"}
           bgColor={"bg-rose-50"}
-          statsNumber={"1"}
+          statsNumber={riskedContractsCount.toString()}
           statsDescription={"À renouveler"}
         />
 

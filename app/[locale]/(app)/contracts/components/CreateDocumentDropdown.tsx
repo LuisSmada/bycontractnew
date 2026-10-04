@@ -73,8 +73,8 @@ export const CreateDocumentDropdown: FC<ICreateDocumentDropdown> = ({
             </div>
             À partir d un modèle
           </DropdownMenuItem>
-          <DropdownMenuSeparator className={"my-1.5 mx-2"} />
-          <DropdownMenuItem
+          {/* <DropdownMenuSeparator className={"my-1.5 mx-2"} /> */}
+          {/* <DropdownMenuItem
             onClick={() => router.push("/fr/contracts/upload")}
             className={
               "text-xs font-semibold text-slate-700 flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg transition-colors text-left cursor-pointer"
@@ -84,7 +84,7 @@ export const CreateDocumentDropdown: FC<ICreateDocumentDropdown> = ({
               <Upload className="w-4 h-4" />
             </div>
             Importer un fichier (PDF/Word)
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

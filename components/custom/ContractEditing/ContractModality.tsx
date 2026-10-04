@@ -1,9 +1,6 @@
 import { Switch } from "@/components/ui/switch";
 import { formatForDateInput } from "@/src/helpers/generic";
-import {
-  TContractEditorContract,
-  TContractEditorDocument,
-} from "@/src/types/apiResponseType";
+import { TContractEditorContract } from "@/src/types/apiResponseType";
 import { CalendarDays, DollarSign, Euro, RefreshCw } from "lucide-react";
 import React, { FC, useState } from "react";
 

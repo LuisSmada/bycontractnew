@@ -7,6 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { sanitizeDate } from "@/src/helpers/generic";
+import { useAppDispatch } from "@/src/store/reduxHooks";
+import { ITemplateResponse } from "@/src/types/apiResponseType";
 import {
   ChevronRight,
   Clock,
@@ -16,106 +19,36 @@ import {
   Search,
   User,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-
-export interface IFindTemplate {
-  id: string;
-  name: string;
-  authorName: string;
-  createdAt: string;
-  // body, variablesDefinition, etc. ignorés ici pour l'affichage de la liste
-  category?: string; // Ajouté pour le visuel
-}
 
 interface ITemplateSelectionDialog {
   isTemplateModalOpened: boolean;
   setIsTemplateModalOpened: (value: boolean) => void;
-  onSelectTemplate: (template: IFindTemplate) => void;
+  templates: ITemplateResponse[];
 }
-
-const MOCK_TEMPLATES: IFindTemplate[] = [
-  {
-    id: "1",
-    name: "Accord de Confidentialité (NDA Standard)",
-    authorName: "Adam Dupont",
-    createdAt: "12 Oct 2026",
-    category: "Confidentialité",
-  },
-  {
-    id: "2",
-    name: "Contrat de Prestation B2B",
-    authorName: "Sophie Dubois",
-    createdAt: "05 Sept 2026",
-    category: "Services",
-  },
-  {
-    id: "3",
-    name: "Contrat de Travail (CDI)",
-    authorName: "Equipe RH",
-    createdAt: "28 Août 2026",
-    category: "Ressources Humaines",
-  },
-  //   {
-  //     id: "4",
-  //     name: "Bail Commercial (3-6-9)",
-  //     authorName: "Adam Dupont",
-  //     createdAt: "15 Juil 2026",
-  //     category: "Immobilier",
-  //   },
-  //   {
-  //     id: "5",
-  //     name: "Conditions Générales de Vente (CGV)",
-  //     authorName: "Sophie Dubois",
-  //     createdAt: "02 Juin 2026",
-  //     category: "Commercial",
-  //   },
-  //   {
-  //     id: "6",
-  //     name: "Pacte d'Actionnaires simplifé",
-  //     authorName: "Adam Dupont",
-  //     createdAt: "10 Mai 2026",
-  //     category: "Corporate",
-  //   },
-  //   {
-  //     id: "7",
-  //     name: "Pacte d'Actionnaires simplifé",
-  //     authorName: "Adam Dupont",
-  //     createdAt: "10 Mai 2026",
-  //     category: "Corporate",
-  //   },
-  //   {
-  //     id: "8",
-  //     name: "Pacte d'Actionnaires simplifé",
-  //     authorName: "Adam Dupont",
-  //     createdAt: "10 Mai 2026",
-  //     category: "Corporate",
-  //   },
-  //   {
-  //     id: "9",
-  //     name: "Pacte d'Actionnaires simplifé",
-  //     authorName: "Adam Dupont",
-  //     createdAt: "10 Mai 2026",
-  //     category: "Corporate",
-  //   },
-];
 
 export const TemplateSelectionDialog = ({
   isTemplateModalOpened,
   setIsTemplateModalOpened,
-  onSelectTemplate,
+  templates,
 }: ITemplateSelectionDialog) => {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filtrage dynamique
   const filteredTemplates = useMemo(() => {
-    if (!searchQuery.trim()) return MOCK_TEMPLATES;
+    if (!searchQuery.trim()) {
+      return templates;
+    }
     const query = searchQuery.toLowerCase();
-    return MOCK_TEMPLATES.filter(
-      (t) =>
-        t.name.toLowerCase().includes(query) ||
-        t.category?.toLowerCase().includes(query),
+    return templates.filter(
+      (t) => t.name.toLowerCase().includes(query),
+      //   || t.category?.toLowerCase().includes(query),
     );
-  }, [searchQuery]);
+  }, [searchQuery, templates]);
 
   return (
     <Dialog
@@ -191,8 +124,10 @@ export const TemplateSelectionDialog = ({
                 <div
                   key={template.id}
                   onClick={() => {
-                    onSelectTemplate(template);
                     setIsTemplateModalOpened(false);
+                    router.push(
+                      `/fr/contracts/new/contract?templateId=${template.id}`,
+                    );
                   }}
                   className="group bg-white border border-slate-200 hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/10 rounded-2xl p-6 flex flex-col justify-between cursor-pointer transition-all duration-300 relative overflow-hidden h-48"
                 >
@@ -203,7 +138,7 @@ export const TemplateSelectionDialog = ({
                       </div>
                       <div>
                         <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-1.5 block">
-                          {template.category}
+                          {/* {template.category} */} TEMPLATE
                         </span>
                         <h3 className="text-[15px] font-bold text-slate-900 leading-tight pr-2">
                           {template.name}
@@ -217,12 +152,12 @@ export const TemplateSelectionDialog = ({
                       <div className="flex items-center gap-1.5">
                         <User className="w-3.5 h-3.5 text-slate-400" />
                         <span className="truncate max-w-20">
-                          {template.authorName}
+                          {`${template.author.firstName} ${template.author.lastName}`}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 -ml-1">
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        {template.createdAt}
+                        {`Modifié le ${sanitizeDate(template.modifiedAt)}`}
                       </div>
                     </div>
 
