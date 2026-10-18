@@ -1,14 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { TContractType } from "@/src/model/entities";
+import { EContractType } from "@/src/model/entities";
 import React, { ReactNode } from "react";
 
 type TAlertSeverity = "info" | "warning" | "critical" | "success";
 
 interface IDashboardTask {
   title: string;
-  contractType: TContractType;
+  contractType: EContractType;
   description: string;
   alert?: string;
   onPrimaryAction?: () => void;
