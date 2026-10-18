@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingScreen } from "@/components/custom/LoadingScreen";
 import { Sidebar } from "@/components/custom/Sidebar";
 import { Topbar } from "@/components/custom/Topbar";
 import { useGetCurrentUserQuery } from "@/src/store/api/authApiSlice";
@@ -29,18 +30,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   }, [dispatch, user]);
 
   // Pendant que le backend vérifie le cookie HttpOnly, on affiche un écran d'attente
+
   if (isLoading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-gray-50">
-        <p className="text-sm font-medium text-gray-500">
-          Chargement de la session...
-        </p>
-      </div>
+      <LoadingScreen message="Préparation de votre espace de travail..." />
     );
   }
 
   if (user) {
-    console.log(user);
     return (
       <div className="min-h-screen flex bg-gray-50 flex-col relative overflow-x-hidden">
         <Topbar />

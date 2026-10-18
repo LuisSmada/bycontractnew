@@ -1,3 +1,4 @@
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { formatForDateInput } from "@/src/helpers/generic";
 import { TContractEditorContract } from "@/src/types/apiResponseType";
@@ -42,13 +43,13 @@ export const ContractModality: FC<IContractModality> = ({
             {currency === "USD" && (
               <DollarSign className="w-3.5 h-3.5 text-slate-400 absolute left-3" />
             )}
-            <input
+            <Input
               type="number"
               onChange={(e) => onContractValueChange(e.target.value)}
               value={document?.value}
               placeholder="0.00"
               disabled={isReadOnly}
-              className="w-full text-xs font-medium border border-slate-200 rounded-lg pl-8 pr-3 py-2 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all disabled:opacity-60"
+              className="w-full text-xs font-medium border border-slate-200 rounded-lg pl-8 pr-3 py-2 bg-slate-50 focus:bg-white focus-visible:ring-1 focus-visible:ring-ui-brand outline-none transition-all disabled:opacity-60"
             />
           </div>
           <select
@@ -110,7 +111,7 @@ export const ContractModality: FC<IContractModality> = ({
         </div>
         {/* Toggle Button stylisé Tailwind */}
         <Switch
-          checked={document?.autoRenew}
+          checked={document?.autoRenew ?? false}
           onClick={() => onContractAutoRenewChange(!document?.autoRenew)}
           disabled={isReadOnly}
           className={`shrink-0 cursor-pointer  ${document?.autoRenew ? "data-checked:bg-indigo-600" : "data-checked:bg-slate-300"} `}

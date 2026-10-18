@@ -15,6 +15,7 @@ export const LoginPageClient = () => {
             className="w-40"
             width={160}
             height={160}
+            loading={"eager"}
           />
         </div>
         <div className="w-full flex justify-center mt-8">

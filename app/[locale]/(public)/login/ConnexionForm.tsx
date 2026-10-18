@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
@@ -10,55 +8,75 @@ import { Button } from "@/components/ui/button";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 import { PasswordInput } from "@/components/custom/PasswordInput";
 import { useLoginMutation } from "@/src/store/api/authApiSlice";
-import { TOASTSTYLES } from "@/src/utils/toastsCSSUtils";
+import { operationError, operationSuccess } from "@/src/utils/operationsToasts";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useForm, Controller } from "react-hook-form";
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
+
+const loginSchema = z.object({
+  userLogin: z.string().min(1, "L'identifiant est requis"),
+  userPassword: z.string().min(1, "Le mot de passe est requis"),
+  rememberMe: z.boolean(),
+});
+
+// Génération automatique du type TypeScript basé sur le schéma
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const ConnexionForm = () => {
-  const [userLogin, setUserLogin] = useState("");
-  const [userPassword, setUserPassword] = useState("");
-  const [isChecked, setIsChecked] = useState(false);
-
   const router = useRouter();
-
   const [login, { isLoading }] = useLoginMutation();
 
-  const handleLogin = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      userLogin: "",
+      userPassword: "",
+      rememberMe: false,
+    },
+  });
 
-    if (!userLogin || !userPassword) {
-      toast.error("Complete all the fields");
-      return;
-    }
+  // On "observe" le champ en temps réel
+  // const isRememberMeChecked = watch("rememberMe")
+  // En résumé :
+  // Tu veux afficher/cacher un élément HTML selon une valeur ? ➔ Utilise watch("nomDuChamp").
+  // Tu veux juste faire un if(...) dans une fonction Javascript ? ➔ Utilise getValues("nomDuChamp").
 
+  const onSubmit = async (data: LoginFormValues) => {
     try {
-      // On utilise .unwrap() pour pouvoir capturer l'erreur directement dans le catch
       await login({
-        email: userLogin,
-        password: userPassword,
+        email: data.userLogin,
+        password: data.userPassword,
       }).unwrap();
 
-      toast.success("Login successfully", {
-        position: "top-right",
-        style: TOASTSTYLES.SUCCESS,
-      });
+      operationSuccess("Connexion réussie.");
       router.push("/fr/dashboard");
     } catch (err: unknown) {
-      // 1. On remplace 'any' par 'unknown' (le standard TS)
-
-      // 2. On "cast" l'erreur pour dire à TS : "Fais-moi confiance, c'est une erreur API"
       const error = err as FetchBaseQueryError;
       if (error?.status === 401 || error?.status === 403) {
-        toast.error("Identifiants incorrects. Veuillez réessayer.", {
-          position: "top-right",
-          style: TOASTSTYLES.ERROR,
-        });
+        operationError("Identifiants incorrects. Veuillez réessayer.");
       } else {
-        toast.error(
+        operationError(
           "Une erreur est survenue lors de la connexion au serveur.",
-          { position: "top-right", style: TOASTSTYLES.ERROR },
         );
       }
     }
   };
+
+  // 4. SOUMISSION INVALIDE (Erreurs Zod capturées)
+  const onInvalid = () => {
+    operationError("Veuillez remplir tous les champs obligatoires.");
+  };
+
+  const getErrorClass = (hasError: boolean) =>
+    hasError ? "border-red-500" : "";
 
   return (
     <div className="flex w-full h-full flex-col px-8 py-12 md:px-16 md:py-20 justify-center relative">
@@ -72,67 +90,119 @@ export const ConnexionForm = () => {
         />
       </div>
 
-      <form onSubmit={handleLogin} className="flex flex-col w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      {/* handleSubmit prend deux fonctions : succès et échec */}
+      <form
+        onSubmit={handleSubmit(onSubmit, onInvalid)}
+        className="flex flex-col w-full max-w-sm"
+      >
+        <h1 className="text-2xl font-bold text-ui-text mb-2">
           Bienvenue sur la plateforme BYCONTRACT
         </h1>
-        <p className="text-sm text-gray-500 font-medium mb-8">
+        <p className="text-sm text-ui-textSubtle font-medium mb-8">
           Connectez-vous pour continuer
         </p>
 
+        {/* CHAMP USER LOGIN */}
         <div className="flex flex-col mb-4">
-          <label className="text-sm font-medium text-gray-900 mb-1">
-            {"Email ou Nom d'utilisateur"}
-          </label>
+          <div className="flex justify-between items-center">
+            <Label className="text-sm font-medium text-ui-text mb-1">
+              {"Email ou Nom d'utilisateur"}
+            </Label>
+            {errors.userLogin && (
+              <span className="text-xs text-red-500 mt-1">
+                {errors.userLogin.message}
+              </span>
+            )}
+          </div>
           <Input
-            className="input-form"
             type="text"
-            value={userLogin}
-            onChange={(e) => setUserLogin(e.target.value)}
+            className={cn(
+              "input-form focus-visible:ring-transparent",
+              getErrorClass(!!errors.userLogin),
+            )}
             disabled={isLoading}
+            {...register("userLogin")}
           />
         </div>
 
+        {/* CHAMP MOT DE PASSE */}
         <div className="flex flex-col mb-6">
-          <label className="text-sm font-medium text-gray-900 mb-1">
-            Mot de passe
-          </label>
+          <div className="flex justify-between items-center">
+            <Label className="text-sm font-medium text-ui-text mb-1">
+              Mot de passe
+            </Label>
+            {errors.userPassword && (
+              <span className="text-xs text-red-500 mt-1">
+                {errors.userPassword.message}
+              </span>
+            )}
+          </div>
           <PasswordInput
-            className="input-form"
             type="password"
-            value={userPassword}
-            onChange={(e) => setUserPassword(e.target.value)}
+            className={cn(
+              "input-form focus-visible:ring-transparent",
+              getErrorClass(!!errors.userPassword),
+            )}
             disabled={isLoading}
+            {...register("userPassword")}
           />
         </div>
 
+        {/* CHAMP CHECKBOX (Nécessite le composant Controller de RHF) */}
         <div className="flex items-center gap-2 mb-8">
-          <Checkbox
-            checked={isChecked}
-            onCheckedChange={setIsChecked}
-            className={"data-checked:bg-ui-brand"}
+          <Controller
+            name="rememberMe"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                disabled={isLoading}
+                className="data-checked:bg-ui-brand data-checked:border-0"
+              />
+            )}
           />
-          <label
-            className="text-sm font-medium text-gray-700 cursor-pointer"
-            onClick={() => setIsChecked(!isChecked)}
-          >
-            Se rappeler moi
-          </label>
+          {/* Label cliquable relié à la checkbox */}
+          <Controller
+            name="rememberMe"
+            control={control}
+            render={({ field }) => (
+              <label
+                className="text-sm font-medium ext-ui-text cursor-pointer"
+                onClick={() => {
+                  if (!isLoading) {
+                    field.onChange(!field.value);
+                  }
+                }}
+              >
+                Se souvenir de moi
+              </label>
+            )}
+          />
         </div>
 
+        {/* BOUTON SOUMISSION */}
         <Button
           type="submit"
           className="w-full justify-center primary-button"
           disabled={isLoading}
         >
-          {isLoading ? "Connexion en cours" : "Connexion"}
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <Spinner className="size-4 text-white" />
+              Connexion en cours
+            </span>
+          ) : (
+            "Connexion"
+          )}
         </Button>
       </form>
 
       <div className="mt-10">
         <Button
           onClick={() => {}}
-          className="text-sm font-medium  bg-white hover:bg-white  border border-ui-border text-ui-textSubtle cursor-pointer"
+          disabled
+          className="text-sm font-medium bg-white hover:bg-white border border-ui-border text-ui-textSubtle"
         >
           Français
         </Button>

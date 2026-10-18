@@ -12,10 +12,11 @@ import {
   TContractEditorContract,
   TContractEditorDocument,
 } from "@/src/types/apiResponseType";
-import { TContractType } from "@/src/model/entities";
+import { EContractStatus, EContractType } from "@/src/model/entities";
 
 interface IContractEditorSide {
   document: TContractEditorDocument | null;
+  templateName?: string;
   updateField: <K extends keyof TContractEditorDocument>(
     field: K,
     value: TContractEditorDocument[K],
@@ -25,6 +26,7 @@ interface IContractEditorSide {
 export const ContractEditorSide = ({
   document,
   updateField,
+  templateName,
 }: IContractEditorSide) => {
   const { data: currentUser } = useGetCurrentUserQuery();
   assertsNonNullable(currentUser);
@@ -50,12 +52,15 @@ export const ContractEditorSide = ({
   const isDocumentContract = !document.isTemplate;
   const isDocumentTemplate = document.isTemplate;
 
-  const isReadOnly = isDocumentContract && document.contractStatus === "SIGNED";
+  const isReadOnly =
+    isDocumentContract &&
+    (document.status === EContractStatus.SIGNED ||
+      document.status === EContractStatus.ACTIVE);
 
   return (
     <div className="w-80 bg-white border-l border-slate-200 flex flex-col shrink-0 z-10 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] md:flex h-screen">
       {/* ONGLETS DU PANNEAU */}
-      <div className="flex border-b border-slate-100 shrink-0">
+      <div className="flex border-b border-slate-100 shrink-0 h-12.5">
         <button
           onClick={() => setActiveTab("parametres")}
           className={`flex-1 py-3 text-xs font-bold border-b-2 transition-colors ${activeTab === "parametres" ? "text-indigo-600 border-indigo-600" : "text-slate-500 hover:text-slate-800 border-transparent"}`}
@@ -83,7 +88,7 @@ export const ContractEditorSide = ({
               searchQuery={searchQuery}
               allStakeholders={allStakeholders}
               isSearching={isSearching}
-              onContractTypeChange={(value: TContractType) =>
+              onContractTypeChange={(value: EContractType) =>
                 updateContractField("contractType", value)
               }
               onContractStakeholdersChange={(value: TCompanyInfos) =>
@@ -118,7 +123,10 @@ export const ContractEditorSide = ({
           {/* BLOC 3 : MÉTA-INFORMATIONS SYSTÈME */}
 
           {document?.author && (
-            <ContractSystemInformations document={document} />
+            <ContractSystemInformations
+              document={document}
+              templateName={templateName}
+            />
           )}
         </div>
       )}

@@ -1,64 +1,83 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { EContractsListTabs } from "@/src/model/entities";
+import {
+  EContractsListTabs,
+  EContractStatus,
+  ETemplateListTabs,
+  TTableDocumentType,
+} from "@/src/model/entities";
 import { Search, Filter } from "lucide-react";
 import { motion } from "motion/react";
 import React, { useMemo } from "react";
 
-type TContractType = {
-  id: string;
-  name: string;
-  type: string;
-  tier: string;
-  status: string;
-  class: EContractsListTabs;
-  date: string;
-  color: string;
-};
-
 interface ICustomContractsTableTabs {
-  contracts: TContractType[];
+  documents: TTableDocumentType[];
   searchQuery: string;
   setSearchQuery: (value: string) => void;
-  activeTab: EContractsListTabs | string;
-  setActiveTab: (activeTab: EContractsListTabs | string) => void;
+  activeTab: EContractsListTabs | ETemplateListTabs | string;
+  setActiveTab: (
+    activeTab: EContractsListTabs | ETemplateListTabs | string,
+  ) => void;
   setSelectedIds: (ids: string[]) => void;
   setCurrentPage: (value: number) => void;
+  isForTemplates: boolean;
 }
 
 export const CustomContractsTableTabs = ({
-  contracts,
+  documents,
   searchQuery,
   setSearchQuery,
   activeTab,
   setActiveTab,
   setSelectedIds,
   setCurrentPage,
+  isForTemplates,
 }: ICustomContractsTableTabs) => {
   const counts = useMemo(() => {
-    return {
-      [EContractsListTabs.ALL]: contracts.filter(
-        (c) => c.class !== EContractsListTabs.TEMPLATE,
-      ).length,
-      [EContractsListTabs.ACTIVE]: contracts.filter(
-        (c) => c.class === EContractsListTabs.ACTIVE,
-      ).length,
-      [EContractsListTabs.PENDING]: contracts.filter(
-        (c) => c.class === EContractsListTabs.PENDING,
-      ).length,
-      [EContractsListTabs.RISK]: contracts.filter(
-        (c) => c.class === EContractsListTabs.RISK,
-      ).length,
-      [EContractsListTabs.TEMPLATE]: contracts.filter(
-        (c) => c.class === EContractsListTabs.TEMPLATE,
-      ).length,
-      [EContractsListTabs.DRAFT]: contracts.filter(
-        (c) => c.class === EContractsListTabs.DRAFT,
-      ).length,
-    };
-  }, [contracts]);
+    if (!isForTemplates) {
+      return {
+        [EContractsListTabs.ALL]: documents.length,
+        [EContractsListTabs.ACTIVE]: documents.filter(
+          (c) =>
+            c.status === EContractStatus.ACTIVE ||
+            c.status === EContractStatus.SIGNED,
+        ).length,
+        [EContractsListTabs.PENDING]: documents.filter(
+          (c) => c.status === EContractStatus.PENDING,
+        ).length,
+        [EContractsListTabs.RISK]: documents.filter(
+          (c) => c.status === EContractStatus.RISKED,
+        ).length,
+        // [EContractsListTabs.TEMPLATE]: documents.filter(
+        //   (c) => c.class === EContractsListTabs.TEMPLATE,
+        // ).length,
+        [EContractsListTabs.DRAFT]: documents.filter(
+          (c) => c.status === EContractStatus.DRAFT,
+        ).length,
+        [EContractsListTabs.ARCHIVED]: documents.filter(
+          (c) =>
+            c.status === EContractStatus.EXPIRED ||
+            c.status === EContractStatus.TERMINATED,
+        ).length,
+      };
+    } else {
+      //FOR TEMPLATES
+      return {
+        [EContractsListTabs.ALL]: documents.length,
+        [EContractsListTabs.ACTIVE]: documents.filter(
+          (c) => c.status === EContractStatus.ACTIVE,
+        ).length,
+        [EContractsListTabs.DRAFT]: documents.filter(
+          (c) => c.status === EContractStatus.DRAFT,
+        ).length,
+        [EContractsListTabs.ARCHIVED]: documents.filter(
+          (c) => c.status === "EXPIRED" || c.status === "TERMINATED",
+        ).length,
+      };
+    }
+  }, [documents, isForTemplates]);
 
-  const TABS = [
+  const CONTRACTS_TABS = [
     {
       id: EContractsListTabs.ALL,
       label: "Tous",
@@ -96,13 +115,54 @@ export const CustomContractsTableTabs = ({
     },
     { id: "separator", isSeparator: true },
     {
-      id: EContractsListTabs.TEMPLATE,
-      label: "Modèles",
-      count: counts[EContractsListTabs.TEMPLATE],
+      id: EContractsListTabs.ARCHIVED, // Ou ETemplateListTabs.ARCHIVED pour la page Modèles
+      label: "Archivés",
+      count: counts[EContractsListTabs.ARCHIVED],
+      color: "text-slate-700",
+      badgeClass: "bg-slate-200 text-slate-700", // Le bg-slate-200 offre un meilleur contraste ici
+    },
+    // {
+    //   id: EContractsListTabs.TEMPLATE,
+    //   label: "Modèles",
+    //   count: counts[EContractsListTabs.TEMPLATE],
+    //   color: "text-indigo-700",
+    //   badgeClass: "bg-indigo-100 text-indigo-700",
+    // },
+  ];
+
+  const TEMPLATES_TABS = [
+    {
+      id: EContractsListTabs.ALL,
+      label: "Tous",
+      count: counts[EContractsListTabs.ALL],
+      color: "text-ui-brand",
+      badgeClass: "bg-indigo-50 text-ui-brand",
+    },
+    {
+      id: EContractsListTabs.ACTIVE,
+      label: "Actifs",
+      count: counts[EContractsListTabs.ACTIVE],
+      color: "text-emerald-700",
+      badgeClass: "bg-emerald-100 text-emerald-700",
+    },
+    {
+      id: EContractsListTabs.DRAFT,
+      label: "Brouillons",
+      count: counts[EContractsListTabs.DRAFT],
       color: "text-indigo-700",
       badgeClass: "bg-indigo-100 text-indigo-700",
     },
+    { id: "separator", isSeparator: true },
+    {
+      id: EContractsListTabs.ARCHIVED, // Ou ETemplateListTabs.ARCHIVED pour la page Modèles
+      label: "Archivés",
+      count: counts[EContractsListTabs.ARCHIVED],
+      color: "text-slate-700",
+      badgeClass: "bg-slate-200 text-slate-700", // Le bg-slate-200 offre un meilleur contraste ici
+    },
   ];
+
+  const TABS = isForTemplates ? TEMPLATES_TABS : CONTRACTS_TABS;
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-5 gap-4">

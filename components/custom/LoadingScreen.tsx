@@ -2,16 +2,24 @@
 
 import Image from "next/image";
 import { Spinner } from "../ui/spinner";
+import { cn } from "@/lib/utils";
+import { HTMLAttributes } from "react";
 
-interface ILoadingScreenProps {
+interface ILoadingScreenProps extends HTMLAttributes<HTMLDivElement> {
   message?: string;
 }
 
 export const LoadingScreen = ({
   message = "Préparation de votre document...",
+  className,
 }: ILoadingScreenProps) => {
   return (
-    <div className="w-full flex flex-1 items-center justify-center flex-col gap-6 min-h-[60vh] mt-15">
+    <div
+      className={cn(
+        "w-full flex flex-1 items-center justify-center flex-col gap-6 min-h-[60vh] mt-15",
+        className,
+      )}
+    >
       <div className="relative w-28 h-28 animate-pulse">
         <Image
           src="/images/BYCONTRACT.png"

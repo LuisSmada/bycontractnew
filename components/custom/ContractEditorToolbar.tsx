@@ -18,9 +18,34 @@ import {
   TextAlignJustify,
   ImageUp,
   Table,
+  ListOrdered,
+  IndentDecrease,
+  IndentIncrease,
+  Heading,
+  Type,
+  Heading1,
+  Heading2,
+  Heading3,
+  ArrowDownToLine,
+  Grid3X3,
+  ArrowUpToLine,
+  ArrowLeftToLine,
+  ArrowRightToLine,
+  Trash2,
+  TableIcon,
+  ChevronDown,
+  SeparatorHorizontal,
 } from "lucide-react";
 import { ContractToolbarButton } from "./ContractToolbarButton";
 import { useEditorState } from "@tiptap/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { useRef } from "react";
 
 type Alignment = "left" | "center" | "right";
 
@@ -29,25 +54,30 @@ export const ContractEditorToolbar = ({
 }: {
   editor: Editor | null;
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const editorState = useEditorState({
     editor,
     selector: ({ editor }) => {
       if (!editor) {
         return {
-          isBold: false,
-          isItalic: false,
-          isStrike: false,
-          isUnderline: false,
-          isSuperscript: false,
-          isSubscript: false,
-          isBulletList: false,
-          isTable: false,
-          isAlignLeft: true,
           isAlignCenter: false,
-          isAlignRight: false,
           isAlignJustify: false,
+          isAlignLeft: true,
+          isAlignRight: false,
+          isBold: false,
+          isBulletList: false,
           canUndo: false,
           canRedo: false,
+          isHeading: false,
+          isItalic: false,
+          isOrderedList: false,
+          isPageBreak: false,
+          isStrike: false,
+          isSuperscript: false,
+          isSubscript: false,
+          isTable: false,
+          isUnderline: false,
         };
       }
 
@@ -61,7 +91,10 @@ export const ContractEditorToolbar = ({
         isSuperscript: editor.isActive("superscript"),
         isSubscript: editor.isActive("subscript"),
         isBulletList: editor.isActive("bulletList"),
+        isOrderedList: editor.isActive("orderedLits"),
         isTable: editor.isActive("table"),
+        isHeading: editor.isActive("heading"),
+        isPageBreak: editor.isActive("pageBreak"),
 
         isAlignLeft: imageSelected
           ? editor.isActive("image", { align: "left" })
@@ -83,9 +116,22 @@ export const ContractEditorToolbar = ({
     },
   });
 
-  if (!editor) {
-    return null;
-  }
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !editor) return;
+
+    // Dans un vrai SaaS, tu enverrais le fichier à ton backend (ex: AWS S3) ici
+    // et tu récupérerais une URL publique.
+    // Pour l'interface immédiate, on génère une URL locale temporaire :
+    const objectUrl = URL.createObjectURL(file);
+
+    editor.chain().focus().setImage({ src: objectUrl }).run();
+
+    // On vide l'input pour pouvoir ré-uploader la même image si besoin
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const setAlignment = (align: Alignment) => {
     if (!editor) return;
@@ -97,6 +143,10 @@ export const ContractEditorToolbar = ({
 
     editor.chain().focus().setTextAlign(align).run();
   };
+
+  if (!editor) {
+    return null;
+  }
 
   return (
     <div className="h-12 border-b border-slate-100 flex items-center px-4 gap-2 text-slate-500 shrink-0 sticky top-0 bg-white/95 backdrop-blur rounded-t-xl z-10">
@@ -121,8 +171,75 @@ export const ContractEditorToolbar = ({
       <div className="w-px h-4 bg-slate-200 mx-1"></div>
 
       <div className="flex items-center gap-x-1">
-        <ContractToolbarButton onClick={() => {}} isActive={false}>
-          <HeadingIcon />
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={`flex items-center justify-center contract-toolbar-button transition-colors  ${editorState?.isHeading ? "bg-slate-200 text-slate-900 hover:bg-slate-200" : "hover:bg-slate-100 text-slate-400 hover:text-slate-800"}`}
+          >
+            <Heading className="w-4 h-4" />
+            <ChevronDown className="w-3 h-3 ml-0.5 text-ui-textSubtle" />
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            align="start"
+            className="w-40 rounded-xl shadow-xl border-slate-100 p-1"
+          >
+            <DropdownMenuItem
+              onClick={() => editor.chain().focus().setParagraph().run()}
+              className={`text-xs font-semibold cursor-pointer rounded-lg px-3 py-2 ${
+                editor.isActive("paragraph")
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-slate-700"
+              }`}
+            >
+              <Type className="w-4 h-4 mr-2" /> Texte normal
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 1 }).run()
+              }
+              className={`text-xs font-semibold cursor-pointer rounded-lg px-3 py-2 ${
+                editor.isActive("heading", { level: 1 })
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-slate-700"
+              }`}
+            >
+              <Heading1 className="w-4 h-4 mr-2" /> Titre 1
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 2 }).run()
+              }
+              className={`text-xs font-semibold cursor-pointer rounded-lg px-3 py-2 ${
+                editor.isActive("heading", { level: 2 })
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-slate-700"
+              }`}
+            >
+              <Heading2 className="w-4 h-4 mr-2" /> Titre 2
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 3 }).run()
+              }
+              className={`text-xs font-semibold cursor-pointer rounded-lg px-3 py-2 ${
+                editor.isActive("heading", { level: 3 })
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-slate-700"
+              }`}
+            >
+              <Heading3 className="w-4 h-4 mr-2" /> Titre 3
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <ContractToolbarButton
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          isActive={editorState?.isOrderedList ?? false}
+        >
+          <ListOrdered />
         </ContractToolbarButton>
 
         <ContractToolbarButton
@@ -132,6 +249,22 @@ export const ContractEditorToolbar = ({
           <List />
         </ContractToolbarButton>
       </div>
+
+      <div className="w-px h-4 bg-slate-200 mx-1"></div>
+
+      <ContractToolbarButton
+        onClick={() => editor.chain().focus().outdent().run()}
+        isActive={false}
+      >
+        <IndentDecrease />
+      </ContractToolbarButton>
+
+      <ContractToolbarButton
+        onClick={() => editor.chain().focus().indent().run()}
+        isActive={false}
+      >
+        <IndentIncrease />
+      </ContractToolbarButton>
 
       <div className="w-px h-4 bg-slate-200 mx-1"></div>
 
@@ -186,18 +319,96 @@ export const ContractEditorToolbar = ({
       <div className="w-px h-4 bg-slate-200 mx-1"></div>
 
       <div className="flex items-center gap-x-1">
-        <ContractToolbarButton
-          onClick={() =>
-            editor
-              .chain()
-              .focus()
-              .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-              .run()
-          }
-          isActive={editorState?.isTable ?? false}
-        >
-          <Table />
-        </ContractToolbarButton>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={`flex items-center justify-center contract-toolbar-button transition-colors ${editorState?.isTable ? "bg-slate-200 text-slate-900 hover:bg-slate-200" : "hover:bg-slate-100 text-slate-400 hover:text-slate-800"}`}
+          >
+            <TableIcon className="w-4 h-4" />
+            <ChevronDown className="w-3 h-3 ml-0.5 text-slate-400" />
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            align="start"
+            className="w-56 rounded-xl shadow-xl border-slate-100 p-1"
+          >
+            {/* VUE 1 : On n'est pas dans un tableau -> Création */}
+            {!editorState?.isTable ? (
+              <DropdownMenuItem
+                onClick={() =>
+                  editor
+                    .chain()
+                    .focus()
+                    .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                    .run()
+                }
+                className="text-xs font-semibold text-slate-700 cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-50"
+              >
+                <Grid3X3 className="w-4 h-4 mr-2 text-slate-400" /> Insérer un
+                tableau (3x3)
+              </DropdownMenuItem>
+            ) : (
+              /* VUE 2 : On est DANS un tableau -> Manipulation */
+              <>
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().addRowBefore().run()}
+                  className="text-xs font-medium text-slate-700 cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-50"
+                >
+                  <ArrowUpToLine className="w-4 h-4 mr-2 text-slate-400" />{" "}
+                  Insérer une ligne au-dessus
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().addRowAfter().run()}
+                  className="text-xs font-medium text-slate-700 cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-50"
+                >
+                  <ArrowDownToLine className="w-4 h-4 mr-2 text-slate-400" />{" "}
+                  Insérer une ligne en-dessous
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator className="my-1 bg-slate-100" />
+
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().addColumnBefore().run()}
+                  className="text-xs font-medium text-slate-700 cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-50"
+                >
+                  <ArrowLeftToLine className="w-4 h-4 mr-2 text-slate-400" />{" "}
+                  Insérer colonne à gauche
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().addColumnAfter().run()}
+                  className="text-xs font-medium text-slate-700 cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-50"
+                >
+                  <ArrowRightToLine className="w-4 h-4 mr-2 text-slate-400" />{" "}
+                  Insérer colonne à droite
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator className="my-1 bg-slate-100" />
+
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().deleteRow().run()}
+                  className="text-xs font-medium text-rose-600 focus:text-rose-700 cursor-pointer rounded-lg px-3 py-2 hover:bg-rose-50"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" /> Supprimer la ligne
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().deleteColumn().run()}
+                  className="text-xs font-medium text-rose-600 focus:text-rose-700 cursor-pointer rounded-lg px-3 py-2 hover:bg-rose-50"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" /> Supprimer la colonne
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().deleteTable().run()}
+                  className="text-xs font-bold text-rose-700 focus:text-rose-800 cursor-pointer rounded-lg px-3 py-2 focus:bg-rose-50 mt-1"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" /> Supprimer tout le tableau
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="w-px h-4 bg-slate-200 mx-1"></div>
@@ -235,9 +446,26 @@ export const ContractEditorToolbar = ({
       <div className="w-px h-4 bg-slate-200 mx-1"></div>
 
       <div className="flex items-center gap-x-1">
-        <ContractToolbarButton onClick={() => {}} isActive={false}>
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleImageUpload}
+          accept="image/png, image/jpeg, image/jpg, image/webp"
+          className="hidden"
+        />
+        <ContractToolbarButton
+          onClick={() => fileInputRef.current?.click()}
+          isActive={false}
+        >
           <ImageUp />
           <span className="font-normal text-xs">Ajouter</span>
+        </ContractToolbarButton>
+
+        <ContractToolbarButton
+          onClick={() => editor.chain().focus().setPageBreak().run()}
+          isActive={editorState?.isPageBreak ?? false}
+        >
+          <SeparatorHorizontal className="w-4 h-4" />
         </ContractToolbarButton>
       </div>
 

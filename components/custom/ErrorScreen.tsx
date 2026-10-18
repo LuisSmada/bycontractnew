@@ -3,8 +3,10 @@
 import { AlertTriangle, ArrowLeft, RefreshCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
+import { HTMLAttributes } from "react";
+import { cn } from "@/lib/utils";
 
-interface IErrorScreenProps {
+interface IErrorScreenProps extends HTMLAttributes<HTMLDivElement> {
   title?: string;
   message?: string;
   onRetry?: () => void;
@@ -16,11 +18,17 @@ export const ErrorScreen = ({
   message = "Nous n'avons pas pu charger les données. Notre équipe technique travaille à le résoudre. Veuillez réessayer plus tard.",
   onRetry,
   showBackButton = true,
+  className,
 }: IErrorScreenProps) => {
   const router = useRouter();
 
   return (
-    <div className="w-full flex flex-1 items-center justify-center flex-col gap-5 min-h-[60vh] px-6 text-center mt-15">
+    <div
+      className={cn(
+        "w-full flex flex-1 items-center justify-center flex-col gap-5 min-h-[60vh] px-6 text-center mt-15",
+        className,
+      )}
+    >
       <div className="relative">
         <div className="w-24 h-24   rounded-full flex items-center justify-center text-rose-500 relative z-10 ">
           <AlertTriangle className="w-10 h-10" />

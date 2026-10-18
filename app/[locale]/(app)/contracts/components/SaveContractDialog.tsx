@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
-import { TContractStatus, TToastType } from "@/src/model/entities";
+import { EContractStatus, TToastType } from "@/src/model/entities";
 import { Button } from "@base-ui/react";
 import { CheckCircle2, Download, EditIcon } from "lucide-react";
 import { SetStateAction } from "react";
@@ -10,7 +10,7 @@ interface ISaveContractDialog {
   isSaveModalOpened: boolean;
   setIsSaveModalOpened: (value: SetStateAction<boolean>) => void;
   onContractSave: (
-    status: TContractStatus,
+    status: EContractStatus,
     message: string,
     toastType?: TToastType,
   ) => void;
@@ -50,7 +50,11 @@ export const SaveContractDialog = ({
             <div
               onClick={() => {
                 setIsSaveModalOpened(false);
-                onContractSave("DRAFT", "Enregistré comme brouillon.", "info");
+                onContractSave(
+                  EContractStatus.DRAFT,
+                  "Enregistré comme brouillon.",
+                  "info",
+                );
               }}
               className="w-full group flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-100 bg-white hover:border-indigo-500 hover:bg-indigo-50/30 transition-all text-left cursor-pointer shadow-sm hover:shadow-md"
             >
@@ -72,7 +76,7 @@ export const SaveContractDialog = ({
               onClick={() => {
                 setIsSaveModalOpened(false);
                 onContractSave(
-                  "PENDING",
+                  EContractStatus.PENDING,
                   "Document figé, prêt à être signé.",
                   "success",
                 );

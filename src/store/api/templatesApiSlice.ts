@@ -1,8 +1,22 @@
 import { apiSlice } from "./apiSlice";
-import { ITemplateResponse, IFindTemplate } from "@/src/types/apiResponseType";
+import {
+  ITemplateResponse,
+  IFindTemplate,
+  ICreateTemplateRequest,
+} from "@/src/types/apiResponseType";
 
 export const templateApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    createTemplate: builder.mutation<ICreateTemplateRequest, ITemplateResponse>(
+      {
+        query: (request) => ({
+          url: "/templates",
+          method: "POST",
+          body: request,
+        }),
+        invalidatesTags: ["Template"],
+      },
+    ),
     getAllTemplates: builder.query<ITemplateResponse[], void>({
       query: () => "/templates",
       providesTags: ["Template"],
@@ -13,6 +27,7 @@ export const templateApiSlice = apiSlice.injectEndpoints({
       providesTags: ["Template"],
     }),
   }),
+  overrideExisting: true,
 });
 
 export const { useGetAllTemplatesQuery, useGetTemplateByIdQuery } =

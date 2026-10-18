@@ -1,14 +1,11 @@
 "use client";
 
-import { ContractEditor } from "@/components/custom/ContractEditor";
-import { TAuthorInfos } from "@/src/model/entities";
+import { ContractEditorWrapper } from "@/components/custom/ContractEditor";
+import { ErrorScreen } from "@/components/custom/ErrorScreen";
+import { LoadingScreen } from "@/components/custom/LoadingScreen";
 import { useGetContractByIdQuery } from "@/src/store/api/contractsSlice";
 import { useGetTemplateByIdQuery } from "@/src/store/api/templatesApiSlice";
-import {
-  IFindContractResponse,
-  IFindTemplate,
-  TContractEditorDocument,
-} from "@/src/types/apiResponseType";
+import { TContractEditorDocument } from "@/src/types/apiResponseType";
 import { useParams } from "next/navigation";
 
 export default function ContractUnit() {
@@ -23,20 +20,30 @@ export default function ContractUnit() {
     data: template,
     isLoading: isLoadingTemplate,
     isError: isErrorTemplate,
+    refetch: refetchTemplate,
   } = useGetTemplateByIdQuery(id, { skip: !isTemplate });
   const {
     data: contract,
     isLoading: isLoadingContract,
     isError: isErrorContract,
+    refetch: refetchContract,
   } = useGetContractByIdQuery(id, { skip: isTemplate });
 
   if (isTemplate) {
     if (isLoadingTemplate) {
-      return <p>Chargement...</p>;
+      return (
+        <LoadingScreen className="min-h-0" message="Chargement du modèle..." />
+      );
     }
 
     if (isErrorTemplate || !template) {
-      return <p>Template introuvable.</p>;
+      return (
+        <ErrorScreen
+          showBackButton={false}
+          onRetry={refetchTemplate}
+          message="Modèle introuvable."
+        />
+      );
     }
 
     const document: TContractEditorDocument = {
@@ -52,17 +59,26 @@ export default function ContractUnit() {
         lastName: template.author.lastName,
       },
       variablesDefinition: "",
+      status: template.status,
     };
 
-    return <ContractEditor document={document} />;
+    return <ContractEditorWrapper document={document} />;
   }
 
   if (isLoadingContract) {
-    return <p>Chargement...</p>;
+    return (
+      <LoadingScreen className="min-h-0" message="Chargement du contrat..." />
+    );
   }
 
   if (isErrorContract || !contract) {
-    return <p>Contrat introuvable.</p>;
+    return (
+      <ErrorScreen
+        showBackButton={false}
+        onRetry={refetchContract}
+        message="Contrat introuvable."
+      />
+    );
   }
 
   const { content, ...restOfContract } = contract;
@@ -73,5 +89,10 @@ export default function ContractUnit() {
     isTemplate: false,
   };
 
-  return <ContractEditor document={document} />;
+  return (
+    <ContractEditorWrapper
+      document={document}
+      idTemplate={document.idTemplate}
+    />
+  );
 }

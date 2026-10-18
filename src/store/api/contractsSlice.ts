@@ -1,14 +1,15 @@
 import { apiSlice } from "./apiSlice";
 import {
-  IContractResponse,
+  IListContractResponse,
   ICreateContractRequest,
   IFindContractResponse,
   IUpdateContractRequest,
+  IUploadSignedContractRequest,
 } from "@/src/types/apiResponseType";
 
 export const contractsSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getAllContracts: builder.query<IContractResponse[], void>({
+    getAllContracts: builder.query<IListContractResponse[], void>({
       query: () => "/contracts",
       providesTags: ["Contract"],
     }),
@@ -16,16 +17,17 @@ export const contractsSlice = apiSlice.injectEndpoints({
       query: (id) => `/contracts/${id}`,
       providesTags: ["Contract"],
     }),
-    createContract: builder.mutation<IContractResponse, ICreateContractRequest>(
-      {
-        query: (request) => ({
-          url: "/contracts",
-          method: "POST",
-          body: request,
-        }),
-        invalidatesTags: ["Contract"],
-      },
-    ),
+    createContract: builder.mutation<
+      IListContractResponse,
+      ICreateContractRequest
+    >({
+      query: (request) => ({
+        url: "/contracts",
+        method: "POST",
+        body: request,
+      }),
+      invalidatesTags: ["Contract"],
+    }),
     updateContract: builder.mutation<
       IFindContractResponse,
       { id: string; request: Partial<IUpdateContractRequest> }
@@ -44,6 +46,26 @@ export const contractsSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Contract"],
     }),
+    uploadSignedContract: builder.mutation<
+      IFindContractResponse,
+      IUploadSignedContractRequest
+    >({
+      query: ({ id, file }) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        return {
+          url: `/contracts/${id}/signature`,
+          method: "POST",
+          body: formData,
+        };
+      },
+      invalidatesTags: ["Contract"],
+    }),
+    getSignedContractUrl: builder.query<Record<string, string>, string>({
+      query: (id) => `/contracts/${id}/signature-url`,
+      providesTags: ["Contract"],
+    }),
   }),
 
   overrideExisting: true,
@@ -55,4 +77,7 @@ export const {
   useGetContractByIdQuery,
   useUpdateContractMutation,
   useDeleteContractMutation,
+  useUploadSignedContractMutation,
+  useGetSignedContractUrlQuery,
+  useLazyGetSignedContractUrlQuery,
 } = contractsSlice;

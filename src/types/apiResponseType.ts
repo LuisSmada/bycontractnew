@@ -1,17 +1,25 @@
 import {
+  EContractStatus,
+  EContractType,
   IMainContactCompany,
   TAuthorInfos,
-  TContractStatus,
-  TContractType,
   UniqueID,
 } from "../model/entities";
 
 // ------------------TEMPLATE------------------------//
 
+export interface ICreateTemplateRequest {
+  name: string;
+  idAuthor: UniqueID;
+  status: EContractStatus;
+  body: object;
+}
+
 export interface ITemplateResponse {
   id: UniqueID;
   name: string;
   author: TAuthorInfos;
+  status: EContractStatus;
   createdAt: string;
   modifiedAt: string;
 }
@@ -45,13 +53,13 @@ export interface ICreateCompanyRequest {
 
 interface IContractGeneric {
   autoRenew: boolean;
-  contractType: TContractType;
+  contractType: EContractType;
   effectiveDate: string;
   expirationDate: string | null;
   id: UniqueID | null;
   name: string;
   value: string;
-  contractStatus: TContractStatus;
+  status: EContractStatus;
   idTemplate: string | null;
 }
 
@@ -62,10 +70,11 @@ export interface ICreateContractRequest extends Omit<IContractGeneric, "id"> {
   bodyText: string;
 }
 
-export interface IContractResponse {
+export interface IListContractResponse {
   id: UniqueID;
   name: string;
-  status: TContractStatus;
+  status: EContractStatus;
+  type: EContractType;
   author: TAuthorInfos;
   company: {
     id: string;
@@ -73,7 +82,8 @@ export interface IContractResponse {
   };
   createdAt: string;
   modifiedAt: string;
-  expirationDate: string;
+  expirationDate: string | null;
+  idTemplate: string | null;
 }
 
 export interface IFindContractResponse extends IContractGeneric {
@@ -97,10 +107,15 @@ export interface IUpdateContractRequest {
   bodyJson: object;
   effectiveDate: string;
   expirationDate: string | null;
-  contractType: TContractType;
-  contractStatus: TContractStatus;
+  contractType: EContractType;
+  status: EContractStatus;
   value: string;
   autoRenew: boolean;
+}
+
+export interface IUploadSignedContractRequest {
+  id: string;
+  file: File;
 }
 
 //****************** */

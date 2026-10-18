@@ -11,13 +11,15 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, ...props }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false);
 
+    console.log("showPwd", showPassword);
+
     return (
       <div className="relative">
         <Input
-          type={showPassword ? "text" : "password"}
-          className={cn("pr-10", className)} // Le pr-10 évite que le texte ne passe sous l'icône
-          ref={ref}
           {...props}
+          type={showPassword ? "text" : "password"}
+          className={cn("pr-10 input-form", className)} // Le pr-10 évite que le texte ne passe sous l'icône
+          ref={ref}
         />
         <button
           type="button" // Très important pour ne pas soumettre le formulaire par erreur !

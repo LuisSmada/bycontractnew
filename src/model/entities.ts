@@ -41,19 +41,42 @@ export interface IMainContactCompany {
   firstName: string;
   lastName: string;
   email: string;
+
   phone: string;
 }
 
-export type TContractType = "NDA" | "CDI" | "BAIL" | "SERVICE";
-export type TContractStatus =
-  | "DRAFT"
-  | "IN_REVIEW"
-  | "PENDING"
-  | "SIGNED"
-  | "ACTIVE"
-  | "RISKED"
-  | "ËXPIRED"
-  | "TERMINATED";
+export enum EContractType {
+  NDA = "NDA",
+  CDI = "CDI",
+  BAIL = "BAIL",
+  SERVICE = "SERVICE",
+}
+
+export enum EContractStatus {
+  //TEMPLATE USE ONLY THE FIRSTS
+  DRAFT = "DRAFT",
+  ACTIVE = "ACTIVE",
+
+  PENDING = "PENDING",
+  SIGNED = "SIGNED",
+  RISKED = "RISKED",
+  EXPIRED = "EXPIRED",
+  TERMINATED = "TERMINATED",
+}
+
+// export enum ETemplateStatus {
+//   DRAFT = "DRAFT",
+//   ACTIVE = "ACTIVE",
+// }
+
+// export type TContractStatus =
+//   | "DRAFT"
+//   | "PENDING"
+//   | "SIGNED"
+//   | "ACTIVE"
+//   | "RISKED"
+//   | "ËXPIRED"
+//   | "TERMINATED";
 // DRAFT
 // IN_REVIEW
 // AWAITING_SIGNATURE
@@ -71,8 +94,28 @@ export enum EContractsListTabs {
   RISK = "RISK",
   TEMPLATE = "TEMPLATE",
   DRAFT = "DRAFT",
+  ARCHIVED = "ARCHIVED",
+}
+
+export enum ETemplateListTabs {
+  ALL = "ALL",
+  ACTIVE = "ACTIVE",
+  DRAFT = "DRAFT",
+  ARCHIVED = "ARCHIVED",
 }
 
 export type TContractEditorSidebarMode = "contract" | "template";
 
 export type TToastType = "success" | "info" | "warning" | "error";
+
+export type TTableDocumentType = {
+  id: string;
+  name: string;
+  type: string;
+  tier: string;
+  status: EContractStatus;
+  class: EContractsListTabs;
+  date: string;
+  color: string;
+  author: TAuthorInfos;
+};

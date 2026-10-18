@@ -9,6 +9,7 @@ import {
   Users2,
   Sparkles,
   Settings,
+  LayoutTemplate,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils"; // Utilitaire de fusion de classes standard Shadcn
@@ -33,6 +34,13 @@ export const Sidebar = () => {
       icon: FileText,
       tooltip: "Contrathèque",
     },
+    {
+      id: "templates",
+      name: "Modèles",
+      path: "/fr/templates", // ou /fr/models selon ton routage
+      icon: LayoutTemplate,
+      tooltip: "Bibliothèque de modèles de contrats",
+    },
     // {
     //   id: "sign",
     //   name: "Signer",
@@ -55,14 +63,14 @@ export const Sidebar = () => {
       icon: Users2,
       tooltip: "Annuaire des co-signataires et clients",
     },
-    {
-      id: "copilot",
-      name: "Copilot",
-      path: "",
-      icon: Sparkles,
-      tooltip: "Assistant IA BYCONTRACT",
-      isAi: true,
-    },
+    // {
+    //   id: "copilot",
+    //   name: "Copilot",
+    //   path: "",
+    //   icon: Sparkles,
+    //   tooltip: "Assistant IA BYCONTRACT",
+    //   isAi: true,
+    // },
   ];
 
   return (
@@ -129,7 +137,7 @@ export const Sidebar = () => {
       </div>
 
       {/* Bouton réglages en bas de page */}
-      <div className="p-2 border-t border-slate-900 w-full">
+      {/* <div className="p-2 border-t border-slate-900 w-full">
         <div className="relative group/tooltip w-full">
           <Button
             onClick={() => router.push("/dashboard/settings")}
@@ -144,7 +152,7 @@ export const Sidebar = () => {
             Configuration générale
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

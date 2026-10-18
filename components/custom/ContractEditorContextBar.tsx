@@ -57,7 +57,7 @@ export const ContractEditorContextBar: FC<IContractEditorContextBar> = ({
           value={workingDocument?.name || ""}
           placeholder="Nouveau document sans titre"
           onChange={(e) => updateField("name", e.target.value)}
-          className="text-lg font-bold font-sans text-slate-900 bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-100 rounded px-2 w-80 transition-all hover:bg-slate-50"
+          className="text-lg font-bold font-sans text-slate-900 bg-transparent border-none outline-none focus-visible:ring-ui-brand rounded px-2 w-80 transition-all hover:bg-slate-50"
         />
         {/* <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md ml-2 border border-slate-200">
             Brouillon

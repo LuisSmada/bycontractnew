@@ -1,11 +1,14 @@
-import { formatForDateInput, sanitizeDate } from "@/src/helpers/generic";
+import { sanitizeDate } from "@/src/helpers/generic";
+import { EContractStatus } from "@/src/model/entities";
 import { TContractEditorDocument } from "@/src/types/apiResponseType";
+import { traductContractStatus } from "@/src/utils/documentsUtils";
 import { Clock, FileBadge2, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import React from "react";
 
 interface IContractSystemInformations {
   document: TContractEditorDocument | null;
+  templateName?: string;
 }
 
 export const ContractSystemInformations = (
@@ -14,10 +17,7 @@ export const ContractSystemInformations = (
   const path = usePathname();
   const isNewDocument = path.includes("new");
 
-  console.log(
-    "props.document?.modifiedAt",
-    formatForDateInput(props.document?.modifiedAt ?? ""),
-  );
+  console.log("props.templateName", props.templateName);
 
   return (
     <div className="space-y-3 pt-6 border-t border-slate-100">
@@ -30,10 +30,9 @@ export const ContractSystemInformations = (
           <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-200/60">
             <span className="text-slate-500 font-semibold">Statut actuel</span>
             <span className="font-bold text-amber-600 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-md">
-              {!props.document?.isTemplate &&
-              props.document?.contractStatus === "DRAFT"
-                ? "Brouillon"
-                : "Autre"}
+              {traductContractStatus(
+                props.document?.status ?? EContractStatus.DRAFT,
+              )}
             </span>
           </div>
         )}
@@ -72,9 +71,7 @@ export const ContractSystemInformations = (
               className="font-medium text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded cursor-pointer hover:bg-indigo-100 transition-colors truncate max-w-25"
               title="NDA Standard V2"
             >
-              {props.document?.idTemplate
-                ? props.document?.idTemplate.slice(0, 6)
-                : "Aucun"}
+              {props.templateName ? props.templateName : "Aucun"}
             </span>
           </div>
         )}

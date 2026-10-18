@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { ContractActor } from "./ContractActor";
 import { usePathname, useRouter } from "next/navigation";
 import { ResizableImage } from "./ResizableImage";
@@ -26,52 +26,92 @@ import {
 } from "@/src/types/apiResponseType";
 import { ContractEditorContextBar } from "./ContractEditorContextBar";
 import { UnsavedChangesDialog } from "@/app/[locale]/(app)/contracts/components/UnsavedChangesDialog";
-import { TContractStatus, TToastType } from "@/src/model/entities";
+import { EContractStatus, TToastType } from "@/src/model/entities";
 import { responseErrorApi } from "@/src/utils/responseErrorApi";
 import {
   operationInfo,
   operationSuccess,
   operationWarning,
 } from "@/src/utils/operationsToasts";
+import { useGetTemplateByIdQuery } from "@/src/store/api/templatesApiSlice";
+import { LoadingScreen } from "./LoadingScreen";
+import { Indent } from "../editor/extensions/Indent";
+import { PageBreak } from "../editor/extensions/PageBreak";
+
+interface IContractEditorWrapper {
+  document: TContractEditorDocument | null;
+  idTemplate?: string | null;
+}
+
+export const ContractEditorWrapper: FC<IContractEditorWrapper> = ({
+  document,
+  idTemplate,
+}) => {
+  const { data, isLoading } = useGetTemplateByIdQuery(idTemplate ?? "", {
+    skip: !idTemplate,
+  });
+
+  console.log("idTemplate", idTemplate);
+
+  const templateData = {
+    id: data?.id,
+    name: data?.name,
+    content: data?.body,
+  };
+
+  if (isLoading) {
+    return <LoadingScreen message="Chargement du modèle sélectionné..." />;
+  }
+
+  return <ContractEditor document={document} templateData={templateData} />;
+};
 
 interface IContractEditor {
   document: TContractEditorDocument | null;
-  templateContent?: object | null;
+  templateData?: {
+    id?: string;
+    name?: string;
+    content?: object;
+  };
 }
 
-export const ContractEditor = (props: IContractEditor) => {
+const ContractEditor = (props: IContractEditor) => {
   const initialDocument = props.document;
-
   const router = useRouter();
+  const path = usePathname();
+  const isNewDocument = path.includes("new");
 
   const { data: currentUser } = useGetCurrentUserQuery();
   assertsNonNullable(currentUser);
-
-  const [workingDocument, setWorkingDocument] =
-    useState<TContractEditorDocument | null>(initialDocument);
-
-  const [isSaveModalOpened, setIsSaveModalOpened] = useState(false);
-  const [isUnsavedModalOpened, setIsUnsavedModalOpened] = useState(false);
 
   const [createContract, { isLoading: isLoadingCreateContract }] =
     useCreateContractMutation();
   const [updateContrat] = useUpdateContractMutation();
 
+  const [workingDocument, setWorkingDocument] =
+    useState<TContractEditorDocument | null>(() => {
+      // Cette fonction ne s'exécute qu'une seule fois au chargement du composant
+
+      if (isNewDocument) {
+        return {
+          ...(initialDocument || {}),
+          author: {
+            firstName: currentUser.firstName,
+            lastName: currentUser.lastName,
+          },
+          body: props.templateData?.content ?? {},
+          idTemplate: props.templateData?.id ?? null,
+        } as TContractEditorDocument;
+      }
+
+      // Si ce n'est pas un nouveau document, on charge juste le document existant
+      return initialDocument;
+    });
+
+  const [isSaveModalOpened, setIsSaveModalOpened] = useState(false);
+  const [isUnsavedModalOpened, setIsUnsavedModalOpened] = useState(false);
+
   const documentContent = workingDocument?.body ?? "";
-
-  const path = usePathname();
-  const isNewDocument = path.includes("new");
-
-  const finalDocument = isNewDocument
-    ? ({
-        ...(workingDocument || {}),
-        author: {
-          firstName: currentUser.firstName,
-          lastName: currentUser.lastName,
-        },
-        body: props.templateContent ? props.templateContent : {},
-      } as TContractEditorDocument)
-    : workingDocument;
 
   const updateField = <K extends keyof TContractEditorDocument>(
     field: K,
@@ -108,6 +148,10 @@ export const ContractEditor = (props: IContractEditor) => {
   //   }
   // };
 
+  const isNotEditable =
+    workingDocument?.status === EContractStatus.SIGNED ||
+    workingDocument?.status === EContractStatus.ACTIVE;
+
   const editor = useEditor({
     extensions: [
       ResizableImage,
@@ -118,6 +162,8 @@ export const ContractEditor = (props: IContractEditor) => {
       }),
       Subscript,
       Superscript,
+      Indent,
+      PageBreak,
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3],
@@ -180,7 +226,8 @@ export const ContractEditor = (props: IContractEditor) => {
         },
       }),
     ],
-    content: props.templateContent ?? documentContent,
+    content: props.templateData?.content ?? documentContent,
+    editable: !isNotEditable,
     onUpdate: ({ editor }) => {
       updateField("body", editor.getJSON());
     },
@@ -208,7 +255,7 @@ export const ContractEditor = (props: IContractEditor) => {
   });
 
   const handleSaveContract = async (
-    status: TContractStatus,
+    status: EContractStatus,
     message: string,
     toastType: TToastType = "info",
   ) => {
@@ -238,13 +285,13 @@ export const ContractEditor = (props: IContractEditor) => {
           idCompany: workingDocument.company?.id,
           bodyJson: workingDocument.body,
           bodyText: editor?.getText() ?? "",
-          contractStatus: status,
+          status: status,
+          idTemplate: workingDocument.idTemplate,
         };
 
         if (!initialDocument) {
           const createPayload: ICreateContractRequest = {
             ...basePayload,
-            idTemplate: null,
             idAuthor: currentUser.id,
           };
           await createContract(createPayload).unwrap();
@@ -286,8 +333,9 @@ export const ContractEditor = (props: IContractEditor) => {
       <div className="flex-1 flex overflow-hidden">
         <ContractActor editor={editor} />
         <ContractEditorSide
-          document={finalDocument}
+          document={workingDocument}
           updateField={updateField}
+          templateName={props.templateData?.name}
         />
       </div>
 

@@ -7,7 +7,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/components/ui/combobox";
-import { TContractType } from "@/src/model/entities";
+import { EContractType } from "@/src/model/entities";
 import {
   ICompany,
   TCompanyInfos,
@@ -16,7 +16,7 @@ import {
 import { Building2, Mail, Plus, Search, X } from "lucide-react";
 import { FC } from "react";
 
-type TTypeContractItem = { value: TContractType; label: string };
+type TTypeContractItem = { value: EContractType; label: string };
 
 interface IContractClassification {
   isReadOnly: boolean;
@@ -26,7 +26,7 @@ interface IContractClassification {
   allStakeholders?: ICompany[];
   isSearching: boolean;
   document: TContractEditorContract | null;
-  onContractTypeChange: (v: TContractType) => void;
+  onContractTypeChange: (v: EContractType) => void;
   onContractStakeholdersChange: (v: TCompanyInfos) => void;
 }
 
@@ -43,19 +43,19 @@ export const ContractClassification: FC<IContractClassification> = ({
 }) => {
   const contractTypes: TTypeContractItem[] = [
     {
-      value: "NDA",
+      value: EContractType.NDA,
       label: "Accord de confidentialité (NDA)",
     },
     {
-      value: "SERVICE",
+      value: EContractType.SERVICE,
       label: "Contrat de prestation",
     },
     {
-      value: "CDI",
+      value: EContractType.CDI,
       label: "Contrat de travail (CDI)",
     },
     {
-      value: "BAIL",
+      value: EContractType.BAIL,
       label: "Bail commercial",
     },
   ];
@@ -75,9 +75,8 @@ export const ContractClassification: FC<IContractClassification> = ({
   //   setSearchQuery("");
   // };
 
-  const selectedContractType = contractTypes.find(
-    (item) => item.value === document?.contractType,
-  );
+  const selectedContractType =
+    contractTypes.find((item) => item.value === document?.contractType) ?? null;
 
   const selectedStakeholders = document?.company ? [document.company] : [];
 

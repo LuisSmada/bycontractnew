@@ -22,10 +22,12 @@ import { FC, useState } from "react";
 
 interface ICreateDocumentDropdown {
   setIsTemplateModalOpened: (value: boolean) => void;
+  isForTemplate: boolean;
 }
 
 export const CreateDocumentDropdown: FC<ICreateDocumentDropdown> = ({
   setIsTemplateModalOpened,
+  isForTemplate,
 }) => {
   const router = useRouter();
   const [isDropdownOpened, setIsDropdownOpened] = useState(false);
@@ -47,34 +49,35 @@ export const CreateDocumentDropdown: FC<ICreateDocumentDropdown> = ({
           "w-56 rounded-xl mt-2 shadow-xl border border-slate-100 p-1.5 z-50"
         }
       >
-        <DropdownMenuGroup>
-          <DropdownMenuLabel className="px-2 py-1.5 mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-            CREATION
-          </DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => router.push("/fr/contracts/new/contract")}
-            className={
-              "text-xs font-semibold text-slate-700 flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg transition-colors text-left cursor-pointer"
-            }
-          >
-            <div className="p-1.5 bg-slate-100 rounded-md text-slate-500">
-              <FileText className="w-4 h-4" />
-            </div>
-            Document vierge
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setIsTemplateModalOpened(true)}
-            className={
-              "text-xs font-semibold text-slate-700 flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg transition-colors text-left cursor-pointer"
-            }
-          >
-            <div className="p-1.5 bg-slate-100 rounded-md text-slate-500">
-              <LayoutTemplate className="w-4 h-4" />
-            </div>
-            À partir d un modèle
-          </DropdownMenuItem>
-          {/* <DropdownMenuSeparator className={"my-1.5 mx-2"} /> */}
-          {/* <DropdownMenuItem
+        {!isForTemplate ? (
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="px-2 py-1.5 mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              NOUVEAU CONTRAT
+            </DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => router.push("/fr/contracts/new/contract")}
+              className={
+                "text-xs font-semibold text-slate-700 flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg transition-colors text-left cursor-pointer"
+              }
+            >
+              <div className="p-1.5 bg-slate-100 rounded-md text-slate-500">
+                <FileText className="w-4 h-4" />
+              </div>
+              Document vierge
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setIsTemplateModalOpened(true)}
+              className={
+                "text-xs font-semibold text-slate-700 flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg transition-colors text-left cursor-pointer"
+              }
+            >
+              <div className="p-1.5 bg-slate-100 rounded-md text-slate-500">
+                <LayoutTemplate className="w-4 h-4" />
+              </div>
+              À partir d un modèle
+            </DropdownMenuItem>
+            {/* <DropdownMenuSeparator className={"my-1.5 mx-2"} /> */}
+            {/* <DropdownMenuItem
             onClick={() => router.push("/fr/contracts/upload")}
             className={
               "text-xs font-semibold text-slate-700 flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg transition-colors text-left cursor-pointer"
@@ -85,7 +88,26 @@ export const CreateDocumentDropdown: FC<ICreateDocumentDropdown> = ({
             </div>
             Importer un fichier (PDF/Word)
           </DropdownMenuItem> */}
-        </DropdownMenuGroup>
+          </DropdownMenuGroup>
+        ) : (
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="px-2 py-1.5 mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              BIBLIOTHEQUE
+            </DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => router.push("/fr/contracts/new/template")}
+              className={
+                "text-xs font-semibold text-slate-700 flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg transition-colors text-left cursor-pointer"
+              }
+            >
+              <div className="p-1.5 bg-slate-100 rounded-md text-slate-500">
+                <Plus className="w-4 h-4" />
+              </div>
+              Créer un nouveau modèle
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        )}
+        {/* <DropdownMenuSeparator className="my-1.5 mx-2 bg-slate-100" /> */}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -61,7 +61,7 @@ export const StakeholderCard = ({ stakeholder }: IStakeholderCard) => {
         </div>
         <div className="flex items-center justify-between text-xs">
           <span className="text-slate-500">Adresse</span>
-          <span className="font-medium text-slate-800">
+          <span className="font-medium text-slate-800 truncate">
             {stakeholder.address.toUpperCase()}
           </span>
         </div>
