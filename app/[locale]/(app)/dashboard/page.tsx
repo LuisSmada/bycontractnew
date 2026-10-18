@@ -9,6 +9,7 @@ import { DashboardStatusChart } from "./DashboardStatusChart";
 import { useGetAllContractsQuery } from "@/src/store/api/contractsSlice";
 import { LoadingScreen } from "@/components/custom/LoadingScreen";
 import { ErrorScreen } from "@/components/custom/ErrorScreen";
+import { EContractType } from "@/src/model/entities";
 
 export default function DashboardPage() {
   const currentUser = useAppSelector(currentUserSelector);
@@ -136,7 +137,7 @@ export default function DashboardPage() {
           <div id="urgent-tasks-container" className="space-y-4 ">
             {/* <!-- Dynamically populated from JS state to allow status changes! --> */}
             <DashboardTask
-              contractType="CDI"
+              contractType={EContractType.CDI}
               title="Corriger CDI Sophie Dubois"
               alert="Clause de non-concurrence non conforme"
               description="Cliquez sur Inspecter pour ouvrir l’inspecteur légal assisté par IA."
@@ -151,7 +152,7 @@ export default function DashboardPage() {
             />
 
             <DashboardTask
-              contractType="BAIL"
+              contractType={EContractType.BAIL}
               title="Négocier Bail Commercial Lyon"
               alert="Clause de non-concurrence non conforme"
               severity="critical"
@@ -163,7 +164,7 @@ export default function DashboardPage() {
             />
 
             <DashboardTask
-              contractType="NDA"
+              contractType={EContractType.NDA}
               title="Contresigner NDA Stripe"
               alert="Clause de non-concurrence non conforme"
               severity="warning"
