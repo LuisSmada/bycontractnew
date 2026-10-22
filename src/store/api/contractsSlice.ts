@@ -1,3 +1,4 @@
+import { createSelector } from "@reduxjs/toolkit";
 import { apiSlice } from "./apiSlice";
 import {
   IListContractResponse,
@@ -6,6 +7,8 @@ import {
   IUpdateContractRequest,
   IUploadSignedContractRequest,
 } from "@/src/types/apiResponseType";
+import { TRootState } from "../store";
+import { EContractStatus } from "@/src/model/entities";
 
 export const contractsSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -81,3 +84,32 @@ export const {
   useGetSignedContractUrlQuery,
   useLazyGetSignedContractUrlQuery,
 } = contractsSlice;
+
+// 1. On récupère le résultat brut de la requête depuis le cache.
+// Note : S'il y a des paramètres à ta query, il faut les passer dans le select().
+// Comme getAllContracts prend "void", on ne met rien
+const selectContractsResult = contractsSlice.endpoints.getAllContracts.select();
+
+// 2. On crée un sélecteur mémoïsé qui extrait juste le tableau de contrats
+export const selectAllContracts = createSelector(
+  selectContractsResult,
+  (contractsResult) => contractsResult?.data ?? [],
+);
+
+// 3. TON SÉLECTEUR MÉTIER : Calcule le nombre de contrats actifs/en attente pour un tiers donné
+// export const selectContractsCountByStakeholder = createSelector(
+//   [
+//     selectAllContracts,
+//     (state: TRootState, idStakeholder: string, docStatus: EContractStatus) =>
+//       idStakeholder,
+//     (state: TRootState, idStakeholder: string, docStatus: EContractStatus) =>
+//       docStatus,
+//   ],
+//   (contracts, idStakeholder, docStatus) => {
+//     // 👇 Adapte "contract.stakeholderId" et "contract.status" avec tes vrais noms de variables
+//     return contracts.filter(
+//       (contract) =>
+//         contract.company.id === idStakeholder && contract.status === docStatus,
+//     ).length;
+//   },
+// );

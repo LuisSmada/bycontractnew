@@ -46,7 +46,7 @@ export const ErrorScreen = ({
         {showBackButton && (
           <Button
             onClick={() => router.back()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 hover:bg-ui-textSubtle text-slate-600 rounded-xl text-sm font-semibold transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 hover:bg-white text-slate-600 rounded-xl text-sm font-semibold transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Retour

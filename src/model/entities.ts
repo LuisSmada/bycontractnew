@@ -41,8 +41,7 @@ export interface IMainContactCompany {
   firstName: string;
   lastName: string;
   email: string;
-
-  phone: string;
+  phone: string | null;
 }
 
 export enum EContractType {

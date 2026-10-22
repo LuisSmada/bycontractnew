@@ -287,7 +287,7 @@ export const TemplatesPage = () => {
                             title="Éditer le modèle"
                             onClick={() =>
                               router.push(
-                                `/fr/contracts/${docType}/${document.id}`,
+                                `/fr/contracts/template/${document.id}`,
                               )
                             }
                           />

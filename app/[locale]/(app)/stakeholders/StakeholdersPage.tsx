@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useGetAllMyCompaniesQuery } from "@/src/store/api/companiesApiSlice";
@@ -9,34 +9,78 @@ import { StakeholderCard } from "./StakeholderCard";
 import { ErrorScreen } from "@/components/custom/ErrorScreen";
 import { LoadingScreen } from "@/components/custom/LoadingScreen";
 import { StakeholderForm } from "./StakeholderForm";
+import { useGetAllParticularStakeholdersQuery } from "@/src/store/api/particularStakeholdersApiSlice";
+import { ICompany, IParticularStakeholder } from "@/src/types/apiResponseType";
+
+export type TStakeholder = ICompany | IParticularStakeholder;
 
 export const StakeholdersPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
+  const [sthToModify, setSthToModify] = useState<TStakeholder | null>(null);
+
+  const openSthFormSheet = isCreateSheetOpen || !!sthToModify;
 
   const {
-    data: stakeholders,
-    isLoading,
-    isError,
-    refetch,
+    data: professionalStakeholders,
+    isLoading: isLoadingProfessionalStakeholders,
+    isError: isErrorProfessionalStakeholders,
+    refetch: refetchProfessionalStakeholders,
   } = useGetAllMyCompaniesQuery();
 
-  if (isLoading) return <LoadingScreen />;
+  const {
+    data: particularStakeholders,
+    isLoading: isLoadingParticularStakeholders,
+    isError: isErrorParticularStakeholders,
+    refetch: refetchParticularStakeholders,
+  } = useGetAllParticularStakeholdersQuery();
 
-  if (isError) {
+  const handleRefetchall = () => {
+    refetchProfessionalStakeholders();
+    refetchParticularStakeholders();
+  };
+
+  const stakeholders: TStakeholder[] = [
+    ...(professionalStakeholders ?? []),
+    ...(particularStakeholders?.content ?? []),
+  ];
+
+  if (isLoadingProfessionalStakeholders && isLoadingParticularStakeholders)
+    return <LoadingScreen />;
+
+  if (isErrorProfessionalStakeholders && isErrorParticularStakeholders) {
     return (
       <ErrorScreen
         title="Erreur de chargement"
         message="Certaines données n'ont pas pu être récupérées."
-        onRetry={refetch}
+        onRetry={handleRefetchall}
       />
     );
   }
 
   // Filtrage local basé sur la recherche
-  const filteredStakeholders = (stakeholders || []).filter((sth) =>
-    sth.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredStakeholders = (stakeholders || []).filter((sth) => {
+    const query = searchQuery.toLowerCase();
+
+    if ("siret" in sth) {
+      const company = sth as ICompany;
+      return company.name.toLowerCase().includes(query);
+    }
+
+    const particular = sth as IParticularStakeholder;
+    const fullName =
+      `${particular.firstName} ${particular.lastName}`.toLowerCase();
+    return fullName.includes(query);
+  });
+
+  const handleSheetOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setIsCreateSheetOpen(false);
+      setSthToModify(null);
+    } else {
+      setIsCreateSheetOpen(true);
+    }
+  };
 
   return (
     <>
@@ -56,14 +100,18 @@ export const StakeholdersPage = () => {
           </div>
 
           {/* INTEGRATION DU SHEET SHADCN ICI */}
-          <Sheet open={isCreateSheetOpen} onOpenChange={setIsCreateSheetOpen}>
+          <Sheet open={openSthFormSheet} onOpenChange={handleSheetOpenChange}>
             <SheetTrigger className="bg-ui-brand text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm flex items-center gap-2 hover:bg-ui-brandHover transition-colors cursor-pointer">
               <Plus className="w-4 h-4" />
               Ajouter un tiers
             </SheetTrigger>
             <SheetContent className="w-full sm:max-w-md overflow-y-auto border-l border-slate-200 p-0">
               {/* On passe la fonction de fermeture au formulaire pour le fermer après la sauvegarde */}
-              <StakeholderForm onSuccess={() => setIsCreateSheetOpen(false)} />
+              <StakeholderForm
+                sthToModify={sthToModify}
+                setIsCreateSheetOpen={setIsCreateSheetOpen}
+                setSthToModify={setSthToModify}
+              />
             </SheetContent>
           </Sheet>
         </div>
@@ -86,7 +134,13 @@ export const StakeholdersPage = () => {
             </div>
           ) : (
             filteredStakeholders.map((sth) => {
-              return <StakeholderCard key={sth.id} stakeholder={sth} />;
+              return (
+                <StakeholderCard
+                  key={sth.id}
+                  stakeholder={sth}
+                  setSthToModify={setSthToModify}
+                />
+              );
             })
           )}
         </div>

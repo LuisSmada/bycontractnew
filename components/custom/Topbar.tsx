@@ -133,9 +133,9 @@ export const Topbar = () => {
                   <p className="text-xs font-semibold text-slate-200 group-hover:text-ui-brand transition-colors leading-none">
                     {currentUser.firstName} {currentUser.lastName}{" "}
                   </p>
-                  <span className="text-[10px] text-slate-500 mt-1">
+                  {/* <span className="text-[10px] text-slate-500 mt-1">
                     {currentUser.role}
-                  </span>
+                  </span> */}
                 </div>
                 <ChevronDown className="text-slate-200 w-3" />
               </div>

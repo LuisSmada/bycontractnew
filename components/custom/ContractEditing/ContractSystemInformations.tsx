@@ -17,7 +17,7 @@ export const ContractSystemInformations = (
   const path = usePathname();
   const isNewDocument = path.includes("new");
 
-  console.log("props.templateName", props.templateName);
+  console.log("modifed", props.document?.modifiedAt);
 
   return (
     <div className="space-y-3 pt-6 border-t border-slate-100">

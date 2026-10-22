@@ -1,7 +1,15 @@
+import { TOASTSTYLES } from "@/src/utils/toastsCSSUtils";
+import { toast } from "sonner";
+
 export const downloadContractPdf = async (
   contractId: string,
   isTemplate: boolean,
 ) => {
+  const toastId = toast.loading("Préparation du PDF en cours...", {
+    position: "top-right",
+    style: TOASTSTYLES.LOADING,
+  });
+
   try {
     const routeParam = isTemplate ? "templates" : "contracts";
 
@@ -25,7 +33,6 @@ export const downloadContractPdf = async (
 
     const contract = await contractResponse.json();
 
-    console.log(contract);
     const contractContent = isTemplate
       ? contract.body
       : contract.content.bodyJson;
@@ -84,8 +91,23 @@ export const downloadContractPdf = async (
     // Nettoyage de la mémoire
     link.parentNode?.removeChild(link);
     window.URL.revokeObjectURL(url);
+
+    toast.success("Votre contrat a été téléchargé avec succès !", {
+      id: toastId,
+      position: "top-right",
+      style: TOASTSTYLES.SUCCESS,
+    });
   } catch (error) {
     console.error("Échec du téléchargement PDF :", error);
-    alert("Impossible de générer le PDF pour le moment.");
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : "Impossible de générer le PDF pour le moment.",
+      {
+        id: toastId,
+        position: "top-right",
+        style: TOASTSTYLES.ERROR,
+      },
+    );
   }
 };

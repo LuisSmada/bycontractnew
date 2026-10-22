@@ -27,7 +27,6 @@ export interface ITemplateResponse {
 export interface IFindTemplate extends ITemplateResponse {
   body: object;
   variablesDefinition: string;
-  createdAt: string;
 }
 
 // ------------------COMPANY------------------------//
@@ -139,3 +138,24 @@ export type TContractEditorContract = Omit<
 
 export type TContractEditorDocument =
   TContractEditorTemplate | TContractEditorContract;
+
+// ------------------PARTICULAR STAKEHOLDER ------------------------//
+
+export interface ICreateParticularStakeholderRequest extends IMainContactCompany {
+  address: string | null;
+}
+export interface IParticularStakeholder extends IMainContactCompany {
+  id: string;
+  address: string | null;
+  createdAt: string;
+  modifiedAt: string;
+}
+
+export interface IParticularStakeholderListResponse {
+  content: IParticularStakeholder[];
+  pageable: object;
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}

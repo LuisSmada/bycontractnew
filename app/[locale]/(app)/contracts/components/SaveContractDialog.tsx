@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { EContractStatus, TToastType } from "@/src/model/entities";
 import { Button } from "@base-ui/react";
 import { CheckCircle2, Download, EditIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { SetStateAction } from "react";
 
 interface ISaveContractDialog {

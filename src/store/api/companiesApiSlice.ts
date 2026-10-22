@@ -16,7 +16,17 @@ export const companiesApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Company"],
     }),
-
+    updateCompanyById: builder.mutation<
+      ICompany,
+      { id: string; request: Partial<ICreateCompanyRequest> }
+    >({
+      query: ({ id, request }) => ({
+        url: `/companies/${id}`,
+        method: "PATCH",
+        body: request,
+      }),
+      invalidatesTags: ["Company"],
+    }),
     deleteCompany: builder.mutation<void, string>({
       query: (id) => ({
         url: `/companies/${id}`,
@@ -31,4 +41,5 @@ export const {
   useGetAllMyCompaniesQuery,
   useCreateCompanyMutation,
   useDeleteCompanyMutation,
+  useUpdateCompanyByIdMutation,
 } = companiesApiSlice;

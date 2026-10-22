@@ -5,28 +5,90 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Building2, User } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { useCreateCompanyMutation } from "@/src/store/api/companiesApiSlice";
+import {
+  useCreateCompanyMutation,
+  useUpdateCompanyByIdMutation,
+} from "@/src/store/api/companiesApiSlice";
 import { operationError, operationSuccess } from "@/src/utils/operationsToasts";
 import { responseErrorApi } from "@/src/utils/responseErrorApi";
-import { ICreateCompanyRequest } from "@/src/types/apiResponseType";
+import {
+  ICreateCompanyRequest,
+  ICreateParticularStakeholderRequest,
+} from "@/src/types/apiResponseType";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
+import {
+  useCreateParticularStakeholderMutation,
+  useUpdateParticularStakeholderByIdMutation,
+} from "@/src/store/api/particularStakeholdersApiSlice";
+import { TStakeholder } from "./StakeholdersPage";
 
 interface IStakeholderFormProps {
-  onSuccess: () => void;
+  sthToModify?: TStakeholder | null;
+  setIsCreateSheetOpen?: (v: boolean) => void;
+  setSthToModify?: (v: TStakeholder | null) => void;
 }
 
-type TStakeholderType = "B2B" | "B2C";
+export const StakeholderForm = ({
+  sthToModify,
+  setIsCreateSheetOpen,
+  setSthToModify,
+}: IStakeholderFormProps) => {
+  const isEditMode = !!sthToModify;
+  const initialType = sthToModify
+    ? "siret" in sthToModify
+      ? "B2B"
+      : "B2C"
+    : "B2B";
 
-export const StakeholderForm = ({ onSuccess }: IStakeholderFormProps) => {
-  const [createCompany, { isLoading }] = useCreateCompanyMutation();
+  const [createCompany, { isLoading: isCreatingCompany }] =
+    useCreateCompanyMutation();
+  const [createParticularStakeholder, { isLoading: isCreatingParticularSth }] =
+    useCreateParticularStakeholderMutation();
+  const [updateCompany, { isLoading: isUpdatingCompany }] =
+    useUpdateCompanyByIdMutation();
+  const [
+    updateParticularStakeholder,
+    { isLoading: isUpdatingParticularStakeholder },
+  ] = useUpdateParticularStakeholderByIdMutation();
 
-  const [siret, setSiret] = useState("");
-  const [stakeholderType, setStakeholderType] =
-    useState<TStakeholderType>("B2B");
+  const [siret, setSiret] = useState(() => {
+    if (sthToModify && "siret" in sthToModify) {
+      return sthToModify.siret;
+    }
+    return "";
+  });
+  const [stakeholderType, setStakeholderType] = useState<"B2B" | "B2C">(
+    initialType,
+  );
   const [errors, setErrors] = useState<Record<string, boolean>>({});
 
   const isSiretInvalid = siret.length > 0 && siret.length !== 14;
+
+  const defaultValues = {
+    name: sthToModify && "siret" in sthToModify ? sthToModify.name : "",
+    address: sthToModify?.address || "",
+    firstName: sthToModify
+      ? "siret" in sthToModify
+        ? sthToModify.mainContact.firstName
+        : sthToModify.firstName
+      : "",
+    lastName: sthToModify
+      ? "siret" in sthToModify
+        ? sthToModify.mainContact.lastName
+        : sthToModify.lastName
+      : "",
+    email: sthToModify
+      ? "siret" in sthToModify
+        ? sthToModify.mainContact.email
+        : sthToModify.email
+      : "",
+    phone: sthToModify
+      ? "siret" in sthToModify
+        ? sthToModify.mainContact.phone
+        : sthToModify.phone
+      : "",
+  };
 
   const clearError = (fieldName: string) => {
     if (errors[fieldName]) {
@@ -66,6 +128,8 @@ export const StakeholderForm = ({ onSuccess }: IStakeholderFormProps) => {
       newErrors.lastName = true;
     }
 
+    console.log("data", Object.fromEntries(formData.entries()));
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       operationError(
@@ -74,53 +138,82 @@ export const StakeholderForm = ({ onSuccess }: IStakeholderFormProps) => {
       return;
     }
 
-    // 2. FORMATAGE DU PAYLOAD POUR CORRESPONDRE À ICreateCompanyRequest
-    let payload: ICreateCompanyRequest;
+    try {
+      if (stakeholderType === "B2B") {
+        const payloadB2B: ICreateCompanyRequest = {
+          name: data.name as string,
+          siret: siret,
+          address: data.address as string,
+          mainContact: {
+            firstName: data.firstName as string,
+            lastName: data.lastName as string,
+            email: data.email as string,
+            phone: (data.phone as string) || null,
+          },
+        };
 
-    if (stakeholderType === "B2B") {
-      const firstName = data.firstName;
-      const lastName = data.lastName;
-
-      payload = {
-        name: data.name as string,
-        siret: siret,
-        address: data.address as string,
-        mainContact: {
-          firstName: firstName as string,
-          lastName: lastName as string,
-          email: data.email as string,
-          phone: (data.phone as string) || "",
-        },
-      };
-    } else {
-      // B2C : Le "nom de l'entreprise" devient le nom de la personne
-      payload = {
-        name: `${data.firstName} ${data.lastName}`,
-        siret: "", // Ou une valeur par défaut reconnue par ton backend comme B2C
-        address: (data.address as string) || "",
-        mainContact: {
+        if (isEditMode && sthToModify) {
+          // MODE UPDATE
+          await updateCompany({
+            id: sthToModify.id,
+            request: payloadB2B,
+          }).unwrap();
+          operationSuccess("Entreprise modifiée avec succès !");
+        } else {
+          // MODE CRÉATION
+          await createCompany(payloadB2B).unwrap();
+          operationSuccess("Entreprise créée avec succès !");
+        }
+      } else {
+        const payloadB2C: ICreateParticularStakeholderRequest = {
+          address: (data.address as string) || null,
           firstName: data.firstName as string,
           lastName: data.lastName as string,
           email: data.email as string,
-          phone: (data.phone as string) || "",
-        },
-      };
-    }
+          phone: (data.phone as string) || null,
+        };
 
-    // 3. APPEL API
-    try {
-      await createCompany(payload).unwrap();
-      onSuccess();
-      operationSuccess("Tiers créé avec succès !");
+        if (isEditMode && sthToModify) {
+          await updateParticularStakeholder({
+            id: sthToModify.id,
+            request: payloadB2C,
+          }).unwrap();
+          operationSuccess("Particulier modifié avec succès !");
+        } else {
+          await createParticularStakeholder(payloadB2C).unwrap();
+          operationSuccess("Particulier créé avec succès !");
+        }
+      }
+
+      setIsCreateSheetOpen?.(false);
+      setSthToModify?.(null);
     } catch (error: unknown) {
       console.error(error);
       responseErrorApi(error);
     }
   };
+
   const getErrorClass = (hasError: boolean) =>
-    hasError ? "border-red-500 focus-visible:ring-red-500" : "";
+    hasError ? "border-red-500" : "";
 
   console.log("errors", errors);
+
+  const isCreating = isCreatingCompany || isCreatingParticularSth;
+  const isUpdating = isUpdatingCompany || isUpdatingParticularStakeholder;
+  const isProcessing = isCreating || isUpdating;
+
+  const getButtonText = () => {
+    if (isCreating) {
+      return "Création...";
+    }
+    if (isUpdating) {
+      return "Mise à jour...";
+    }
+    if (isEditMode) {
+      return "Mettre à jour le tiers";
+    }
+    return "Créer le tiers";
+  };
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
@@ -135,6 +228,7 @@ export const StakeholderForm = ({ onSuccess }: IStakeholderFormProps) => {
         onSubmit={handleSubmit}
         id="stakeholder-form"
         className="flex-1 overflow-y-auto p-6 space-y-8"
+        key={sthToModify ? sthToModify.id : "new-stakeholder"}
       >
         {/* SÉLECTION DU TYPE */}
         <div className="space-y-3">
@@ -145,11 +239,12 @@ export const StakeholderForm = ({ onSuccess }: IStakeholderFormProps) => {
             {/* Bouton B2B */}
             <button
               type="button"
+              disabled={isEditMode}
               onClick={() => {
                 setStakeholderType("B2B");
                 setErrors({}); // On nettoie les erreurs quand on change de mode
               }}
-              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${isEditMode ? "opacity-50 cursor-not-allowed" : "cursor-pointer"} ${
                 stakeholderType === "B2B"
                   ? "border-ui-brand bg-indigo-50 text-ui-brand"
                   : "border-slate-200 bg-white text-ui-textSubtle hover:border-slate-300"
@@ -161,11 +256,12 @@ export const StakeholderForm = ({ onSuccess }: IStakeholderFormProps) => {
             {/* Bouton B2C */}
             <button
               type="button"
+              disabled={isEditMode}
               onClick={() => {
                 setStakeholderType("B2C");
                 setErrors({}); // On nettoie les erreurs quand on change de mode
               }}
-              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${isEditMode ? "opacity-50 cursor-not-allowed" : "cursor-pointer"} ${
                 stakeholderType === "B2C"
                   ? "border-ui-brand bg-indigo-50 text-ui-brand"
                   : "border-slate-200 bg-white text-ui-textSubtle hover:border-slate-300"
@@ -187,6 +283,7 @@ export const StakeholderForm = ({ onSuccess }: IStakeholderFormProps) => {
                 <Input
                   id="companyName"
                   name="name"
+                  defaultValue={defaultValues.name}
                   placeholder="Ex: Groupe BEYOND"
                   className={cn("input-form", getErrorClass(errors.name))}
                   onChange={() => clearError("name")}
@@ -225,8 +322,13 @@ export const StakeholderForm = ({ onSuccess }: IStakeholderFormProps) => {
                 <Input
                   id="address"
                   name="address"
-                  className={cn("input-form", getErrorClass(errors.address))}
+                  defaultValue={defaultValues.address}
+                  className={cn(
+                    "input-form focus-visible:ring-transparent",
+                    getErrorClass(errors.address),
+                  )}
                   placeholder="123 rue de la Paix, 75000 Paris"
+                  onChange={() => clearError("address")}
                 />
               </div>
               <div className="space-y-2">
@@ -249,6 +351,7 @@ export const StakeholderForm = ({ onSuccess }: IStakeholderFormProps) => {
                   id="firstName"
                   name="firstName"
                   placeholder="Prénom"
+                  defaultValue={defaultValues.firstName}
                   className={cn("input-form", getErrorClass(errors.firstName))}
                   onChange={() => clearError("firstName")}
                 />
@@ -259,6 +362,7 @@ export const StakeholderForm = ({ onSuccess }: IStakeholderFormProps) => {
                   id="lastName"
                   name="lastName"
                   placeholder="Nom"
+                  defaultValue={defaultValues.lastName}
                   className={cn("input-form", getErrorClass(errors.lastName))}
                   onChange={() => clearError("lastName")}
                 />
@@ -270,6 +374,7 @@ export const StakeholderForm = ({ onSuccess }: IStakeholderFormProps) => {
                 id="email"
                 type="email"
                 name="email"
+                defaultValue={defaultValues.email}
                 placeholder="contact@exemple.com"
                 className={cn("input-form", getErrorClass(errors.email))}
                 onChange={() => clearError("email")}
@@ -281,27 +386,50 @@ export const StakeholderForm = ({ onSuccess }: IStakeholderFormProps) => {
                 id="phone"
                 type="tel"
                 name="phone"
+                defaultValue={defaultValues.phone ?? ""}
                 placeholder="+33 6 00 00 00 00"
               />
             </div>
+            {stakeholderType === "B2C" && (
+              <div className="space-y-2">
+                <Label htmlFor="particularAddress">Adresse postale</Label>
+                <Input
+                  id="address"
+                  name="address"
+                  defaultValue={defaultValues.address}
+                  className={cn("input-form", getErrorClass(errors.address))}
+                  placeholder="123 rue de la Paix, 75000 Paris"
+                  onChange={() => clearError("address")}
+                />
+              </div>
+            )}
           </div>
         </div>
       </form>
 
       {/* FOOTER DU SHEET */}
       <div className="p-6 bg-white border-t border-slate-100 flex justify-end gap-3 shrink-0">
-        <Button variant="outline" type="button" onClick={onSuccess}>
+        <Button
+          variant="outline"
+          type="button"
+          onClick={() => {
+            setIsCreateSheetOpen?.(false);
+            if (sthToModify) {
+              setSthToModify?.(null);
+            }
+          }}
+        >
           Annuler
         </Button>
         <Button
           type="submit"
           form="stakeholder-form"
-          disabled={isLoading} // 👈 Désactive le bouton pendant la requête
+          disabled={isProcessing}
           className="primary-button disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {/* Si ça charge, on affiche un spinner natif */}
-          {isLoading && <Spinner className="size-4 text-white" />}
-          {isLoading ? "Création..." : "Créer le tiers"}
+          {isProcessing && <Spinner className="size-4 text-white" />}
+          {getButtonText()}
         </Button>
       </div>
     </div>

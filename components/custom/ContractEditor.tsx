@@ -286,13 +286,13 @@ const ContractEditor = (props: IContractEditor) => {
           bodyJson: workingDocument.body,
           bodyText: editor?.getText() ?? "",
           status: status,
-          idTemplate: workingDocument.idTemplate,
         };
 
         if (!initialDocument) {
           const createPayload: ICreateContractRequest = {
             ...basePayload,
             idAuthor: currentUser.id,
+            idTemplate: workingDocument.idTemplate,
           };
           await createContract(createPayload).unwrap();
         } else {

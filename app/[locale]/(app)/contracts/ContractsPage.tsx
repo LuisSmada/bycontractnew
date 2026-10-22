@@ -132,9 +132,11 @@ export const ContractsPage = () => {
   const filteredContracts = useMemo(() => {
     let result: TTableDocumentType[] = allDocuments;
 
+    console.log(allDocuments);
+
     // Filtrage par Onglet
     if (activeTab === EContractsListTabs.ALL) {
-      result = result.filter((c) => c.class !== EContractsListTabs.TEMPLATE);
+      result = result;
     } else {
       result = result.filter((c) => c.class === activeTab);
     }
@@ -320,6 +322,12 @@ export const ContractsPage = () => {
                     : "bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600";
 
                   const docType = isTemplate ? "template" : "contract";
+
+                  const canBeSigned =
+                    contract.status === EContractStatus.PENDING;
+                  const canBeModified =
+                    contract.status === EContractStatus.DRAFT ||
+                    contract.status === EContractStatus.PENDING;
                   return (
                     <TableRow
                       key={contract.id}
@@ -373,15 +381,17 @@ export const ContractsPage = () => {
                         {/* Boutons d'action : Visibles uniquement au survol du tableau (premium UI style) */}
                         <div className="flex items-center justify-end">
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 shadow-sm">
-                            <ActionBtn
-                              icon={PenTool}
-                              title="Éditer le modèle"
-                              onClick={() =>
-                                router.push(
-                                  `/fr/contracts/${docType}/${contract.id}`,
-                                )
-                              }
-                            />
+                            {canBeModified && (
+                              <ActionBtn
+                                icon={PenTool}
+                                title="Éditer le modèle"
+                                onClick={() =>
+                                  router.push(
+                                    `/fr/contracts/${docType}/${contract.id}`,
+                                  )
+                                }
+                              />
+                            )}
 
                             <ActionBtn
                               icon={Eye}
@@ -409,15 +419,17 @@ export const ContractsPage = () => {
                               }}
                             />
 
-                            <ActionBtn
-                              icon={FileSignature}
-                              title="Marquer comme signé"
-                              onClick={() => {
-                                setDocumentIdToMarkAsSigned(contract.id);
-                                setDocumentNameToMarkAsSigned(contract.name);
-                                setIsMarkSignedModalOpened(true);
-                              }} // Ta fonction pour ouvrir le Modal
-                            />
+                            {canBeSigned && (
+                              <ActionBtn
+                                icon={FileSignature}
+                                title="Marquer comme signé"
+                                onClick={() => {
+                                  setDocumentIdToMarkAsSigned(contract.id);
+                                  setDocumentNameToMarkAsSigned(contract.name);
+                                  setIsMarkSignedModalOpened(true);
+                                }} // Ta fonction pour ouvrir le Modal
+                              />
+                            )}
 
                             <ActionBtn
                               icon={Download}

@@ -12,8 +12,10 @@ export const traductContractStatus = (status: EContractStatus): string => {
       return "Signé (À venir)";
     case EContractStatus.RISKED:
       return "Risque";
-    case EContractStatus.TERMINATED || EContractStatus.EXPIRED:
-      return "Archivé";
+    case EContractStatus.TERMINATED:
+      return "Terminé";
+    case EContractStatus.EXPIRED:
+      return "Expiré";
     default:
       return "Brouillon";
   }
@@ -48,7 +50,7 @@ export const sanitizeDocumentStatus = (
         tabClass: EContractsListTabs.RISK,
         color: "bg-rose-100 text-rose-700",
       };
-    case EContractStatus.TERMINATED || EContractStatus.EXPIRED:
+    case (EContractStatus.TERMINATED, EContractStatus.EXPIRED):
       return {
         tabClass: EContractsListTabs.ARCHIVED,
         color: "bg-slate-200 text-slate-700",

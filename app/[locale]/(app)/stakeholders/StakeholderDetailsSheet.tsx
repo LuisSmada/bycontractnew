@@ -12,39 +12,72 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
-
-// Adapte cette interface selon le type réel retourné par ton API
-interface IStakeholderDetails {
-  id: string;
-  name: string;
-  siret?: string;
-  address?: string;
-  mainContact: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone?: string;
-  };
-}
+import { TStakeholder } from "./StakeholdersPage";
+import { ICompany, IParticularStakeholder } from "@/src/types/apiResponseType";
+import { useDeleteParticularStakeholderMutation } from "@/src/store/api/particularStakeholdersApiSlice";
+import { useDeleteCompanyMutation } from "@/src/store/api/companiesApiSlice";
+import { Spinner } from "@/components/ui/spinner";
+import { responseErrorApi } from "@/src/utils/responseErrorApi";
+import { operationSuccess } from "@/src/utils/operationsToasts";
 
 interface IStakeholderDetailsSheetProps {
-  stakeholder: IStakeholderDetails;
+  stakeholder: TStakeholder;
+  setSthToModify: (v: TStakeholder) => void;
 }
 
 export const StakeholderDetailsSheet = ({
   stakeholder,
+  setSthToModify,
 }: IStakeholderDetailsSheetProps) => {
-  const isB2B = !!stakeholder.siret;
+  const [deleteParticularSth, { isLoading: isDeletingParticularSth }] =
+    useDeleteParticularStakeholderMutation();
+  const [deleteCompany, { isLoading: isDeletingCompany }] =
+    useDeleteCompanyMutation();
+
+  const isB2B = "siret" in stakeholder;
+
+  const displayName = isB2B
+    ? (stakeholder as ICompany).name
+    : `${(stakeholder as IParticularStakeholder).firstName} ${(stakeholder as IParticularStakeholder).lastName}`;
+
+  const displaySiret = isB2B ? (stakeholder as ICompany).siret : null;
+
+  const contactName = isB2B
+    ? `${(stakeholder as ICompany).mainContact.firstName} ${(stakeholder as ICompany).mainContact.lastName}`
+    : `${(stakeholder as IParticularStakeholder).firstName} ${(stakeholder as IParticularStakeholder).lastName}`;
+
+  const contactEmail = isB2B
+    ? (stakeholder as ICompany).mainContact.email
+    : (stakeholder as IParticularStakeholder).email;
+
+  const contactPhone = isB2B
+    ? (stakeholder as ICompany).mainContact.phone
+    : (stakeholder as IParticularStakeholder).phone;
+
+  const handleDeleting = async () => {
+    try {
+      if (isB2B) {
+        await deleteCompany(stakeholder.id).unwrap();
+      } else {
+        await deleteParticularSth(stakeholder.id).unwrap();
+      }
+      operationSuccess("Le tiers a bien été supprimé.");
+    } catch (e) {
+      responseErrorApi(e);
+    }
+  };
+
+  const isDeleting = isDeletingCompany && isDeletingParticularSth;
 
   return (
     <>
       {/* HEADER DE LA FICHE */}
       <div className="p-6 bg-slate-50 border-b border-slate-100">
         <div className="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-2xl mb-4">
-          {stakeholder.name.charAt(0).toUpperCase()}
+          {displayName.charAt(0).toUpperCase()}
         </div>
         <SheetTitle className="text-2xl font-bold text-slate-900 font-display">
-          {stakeholder.name}
+          {displayName}
         </SheetTitle>
         <div className="flex items-center gap-2 mt-2 text-sm text-slate-500 font-medium">
           {isB2B ? (
@@ -52,7 +85,7 @@ export const StakeholderDetailsSheet = ({
           ) : (
             <User className="w-4 h-4" />
           )}
-          {isB2B ? `Entreprise • SIRET: ${stakeholder.siret}` : "Particulier"}
+          {isB2B ? `Entreprise • SIRET: ${displaySiret}` : "Particulier"}
         </div>
       </div>
 
@@ -60,33 +93,30 @@ export const StakeholderDetailsSheet = ({
       <div className="p-6 space-y-8 flex-1">
         <div className="space-y-4">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            Contact Principal
+            {isB2B ? "Contact Principal" : "Informations de Contact"}
           </h3>
 
           <div className="bg-white border border-slate-100 rounded-xl p-4 space-y-3 shadow-sm">
-            <div className="font-semibold text-slate-800">
-              {stakeholder.mainContact.firstName}{" "}
-              {stakeholder.mainContact.lastName}
-            </div>
+            <div className="font-semibold text-slate-800">{contactName}</div>
 
             <div className="flex items-center gap-3 text-sm text-slate-600">
               <Mail className="w-4 h-4 text-slate-400" />
               <a
-                href={`mailto:${stakeholder.mainContact.email}`}
+                href={`mailto:${contactEmail}`}
                 className="hover:text-indigo-600 transition-colors"
               >
-                {stakeholder.mainContact.email}
+                {contactEmail}
               </a>
             </div>
 
-            {stakeholder.mainContact.phone && (
+            {contactPhone && (
               <div className="flex items-center gap-3 text-sm text-slate-600">
                 <Phone className="w-4 h-4 text-slate-400" />
                 <a
-                  href={`tel:${stakeholder.mainContact.phone}`}
+                  href={`tel:${contactPhone}`}
                   className="hover:text-indigo-600 transition-colors"
                 >
-                  {stakeholder.mainContact.phone}
+                  {contactPhone}
                 </a>
               </div>
             )}
@@ -123,10 +153,21 @@ export const StakeholderDetailsSheet = ({
         <Button
           variant="outline"
           className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-transparent"
+          onClick={handleDeleting}
+          disabled={isDeleting}
         >
-          <Trash2 className="w-4 h-4 mr-2" /> Supprimer
+          {isDeleting ? (
+            <Spinner className="size-4 text-rose-600" />
+          ) : (
+            <Trash2 className="w-4 h-4 mr-2" />
+          )}{" "}
+          Supprimer
         </Button>
-        <Button className="bg-slate-900 hover:bg-slate-800 text-white">
+        <Button
+          className="bg-slate-900 hover:bg-slate-800 text-white"
+          disabled={isDeleting}
+          onClick={() => setSthToModify(stakeholder)}
+        >
           <Edit className="w-4 h-4 mr-2" /> Modifier
         </Button>
       </div>

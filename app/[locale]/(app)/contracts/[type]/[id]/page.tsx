@@ -39,7 +39,7 @@ export default function ContractUnit() {
     if (isErrorTemplate || !template) {
       return (
         <ErrorScreen
-          showBackButton={false}
+          showBackButton={true}
           onRetry={refetchTemplate}
           message="Modèle introuvable."
         />
@@ -74,7 +74,7 @@ export default function ContractUnit() {
   if (isErrorContract || !contract) {
     return (
       <ErrorScreen
-        showBackButton={false}
+        showBackButton={true}
         onRetry={refetchContract}
         message="Contrat introuvable."
       />
@@ -88,6 +88,8 @@ export default function ContractUnit() {
     body: content.bodyJson,
     isTemplate: false,
   };
+
+  console.log(document);
 
   return (
     <ContractEditorWrapper
