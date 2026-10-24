@@ -5,5 +5,5 @@ interface IPublicLayoutProps {
 }
 
 export default function PublicLayout({ children }: IPublicLayoutProps) {
-  return <>{children}</>;
+  return <div className="bg-gray-50">{children}</div>;
 }

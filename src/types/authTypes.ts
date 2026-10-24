@@ -3,6 +3,13 @@ export interface IAuthCredentials {
   password: string;
 }
 
-export interface ILoginResponse {
+export interface IAuthResponse {
   message: string;
+}
+
+export interface IRegisterUserRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
 }

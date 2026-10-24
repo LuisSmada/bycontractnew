@@ -1,9 +1,21 @@
 import { IUser } from "@/src/model/entities";
-import { ILoginResponse, IAuthCredentials } from "@/src/types/authTypes";
+import {
+  IAuthCredentials,
+  IAuthResponse,
+  IRegisterUserRequest,
+} from "@/src/types/authTypes";
 import { apiSlice } from "./apiSlice";
 
 export const authApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    registerUser: builder.mutation<IAuthResponse, IRegisterUserRequest>({
+      query: (credentials) => ({
+        url: "auth/register",
+        method: "POST",
+        body: credentials,
+      }),
+      invalidatesTags: ["User"],
+    }),
     // - User : Le format de la donnée renvoyée par Spring Boot
     // - void : Indique strictement à TypeScript qu'aucun argument n'est requis
     getCurrentUser: builder.query<IUser, void>({
@@ -13,7 +25,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
 
     // Une "mutation" sert à MODIFIER des données (POST, PUT, DELETE)
     // Exemple pour le login : il renvoie un objet (ou any) et prend un objet Credentials en paramètre
-    login: builder.mutation<ILoginResponse, IAuthCredentials>({
+    login: builder.mutation<IAuthResponse, IAuthCredentials>({
       query: (credentials) => ({
         url: "auth/login",
         method: "POST",
@@ -23,7 +35,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["User"],
     }),
 
-    logout: builder.mutation<ILoginResponse, void>({
+    logout: builder.mutation<IAuthResponse, void>({
       query: () => ({
         url: "auth/logout",
         method: "POST",
@@ -35,5 +47,9 @@ export const authApiSlice = apiSlice.injectEndpoints({
   overrideExisting: true,
 });
 
-export const { useGetCurrentUserQuery, useLoginMutation, useLogoutMutation } =
-  authApiSlice;
+export const {
+  useGetCurrentUserQuery,
+  useLoginMutation,
+  useLogoutMutation,
+  useRegisterUserMutation,
+} = authApiSlice;

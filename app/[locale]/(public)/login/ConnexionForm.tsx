@@ -15,6 +15,7 @@ import { useForm, Controller } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import Link from "next/link";
 
 const loginSchema = z.object({
   userLogin: z.string().min(1, "L'identifiant est requis"),
@@ -199,6 +200,16 @@ export const ConnexionForm = () => {
       </form>
 
       <div className="mt-10">
+        <p className="text-center text-sm text-ui-textSubtle mb-8">
+          {"Vous n'avez pas de compte ? "}{" "}
+          <Link
+            href="/fr/register"
+            className="text-ui-brand font-bold hover:underline"
+          >
+            {"Créer un compte"}
+          </Link>
+        </p>
+
         <Button
           onClick={() => {}}
           disabled

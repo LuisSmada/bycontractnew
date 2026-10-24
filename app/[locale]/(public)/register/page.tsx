@@ -1,9 +1,5 @@
-import { ComingSoon } from "@/components/custom/ComingSoon";
+import { RegisterPage } from "./RegisterPage";
 
-export default function RegisterPage() {
-  return (
-    <>
-      <ComingSoon />
-    </>
-  );
+export default function Page() {
+  return <RegisterPage />;
 }

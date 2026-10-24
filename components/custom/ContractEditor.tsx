@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useEffect, useMemo, useRef, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import { ContractActor } from "./ContractActor";
 import { usePathname, useRouter } from "next/navigation";
 import { ResizableImage } from "./ResizableImage";
@@ -86,7 +86,10 @@ const ContractEditor = (props: IContractEditor) => {
 
   const [createContract, { isLoading: isLoadingCreateContract }] =
     useCreateContractMutation();
-  const [updateContrat] = useUpdateContractMutation();
+  const [updateContrat, { isLoading: isUpdatingContract }] =
+    useUpdateContractMutation();
+
+  const isProcessing = isLoadingCreateContract || isUpdatingContract;
 
   const [workingDocument, setWorkingDocument] =
     useState<TContractEditorDocument | null>(() => {
@@ -134,19 +137,6 @@ const ContractEditor = (props: IContractEditor) => {
   const isDocumentModified = useMemo(() => {
     return JSON.stringify(initialDocument) !== JSON.stringify(workingDocument);
   }, [initialDocument, workingDocument]);
-
-  // const handleGoBack = () => {
-  //   if (isDocumentModified) {
-  //     const confirmLeave = window.confirm(
-  //       "Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter ?",
-  //     );
-  //     if (confirmLeave) {
-  //       router.back();
-  //     }
-  //   } else {
-  //     router.back();
-  //   }
-  // };
 
   const isNotEditable =
     workingDocument?.status === EContractStatus.SIGNED ||
@@ -328,6 +318,7 @@ const ContractEditor = (props: IContractEditor) => {
         setIsUnsavedModalOpened={setIsUnsavedModalOpened}
         updateField={updateField}
         cannotSave={cannotSave}
+        isProcessing={isProcessing}
       />
 
       <div className="flex-1 flex overflow-hidden">

@@ -16,6 +16,7 @@ interface IContractEditorContextBar {
   cannotSave: boolean | null;
   setIsSaveModalOpened: (value: SetStateAction<boolean>) => void;
   setIsUnsavedModalOpened: (value: SetStateAction<boolean>) => void;
+  isProcessing: boolean;
 }
 
 export const ContractEditorContextBar: FC<IContractEditorContextBar> = ({
@@ -25,6 +26,7 @@ export const ContractEditorContextBar: FC<IContractEditorContextBar> = ({
   setIsSaveModalOpened,
   setIsUnsavedModalOpened,
   cannotSave,
+  isProcessing,
 }) => {
   const router = useRouter();
 
@@ -94,7 +96,9 @@ export const ContractEditorContextBar: FC<IContractEditorContextBar> = ({
         <Button
           className="px-4 py-1.5 bg-ui-brand hover:bg-ui-brandHover text-white text-xs font-bold rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-2"
           onClick={() => setIsSaveModalOpened(true)}
-          disabled={(cannotSave || !isDocumentModified) ?? false}
+          disabled={
+            (cannotSave || !isDocumentModified || isProcessing) ?? false
+          }
         >
           <Save className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">

@@ -1,6 +1,5 @@
 "use client";
 
-import { ComingSoon } from "@/components/custom/ComingSoon";
 import { ErrorScreen } from "@/components/custom/ErrorScreen";
 import { LoadingScreen } from "@/components/custom/LoadingScreen";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,11 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  EContractsListTabs,
-  EContractStatus,
-  TTableDocumentType,
-} from "@/src/model/entities";
+import { EContractsListTabs, TTableDocumentType } from "@/src/model/entities";
 import { useGetAllTemplatesQuery } from "@/src/store/api/templatesApiSlice";
 import { ITemplateResponse } from "@/src/types/apiResponseType";
 import {
@@ -29,7 +24,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { act, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ActionBtn } from "../contracts/components/ActionBtn";
 import { downloadContractPdf } from "../contracts/downloadContractPdf";
 import { CreateDocumentDropdown } from "../contracts/components/CreateDocumentDropdown";
@@ -228,7 +223,6 @@ export const TemplatesPage = () => {
                   ? "bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200"
                   : "bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600";
 
-                const docType = isTemplate ? "template" : "contract";
                 return (
                   <TableRow
                     key={document.id}
