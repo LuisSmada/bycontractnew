@@ -8,7 +8,7 @@ interface IDashboardCard {
   textColor: string;
   bgColor: string;
   statsNumber: string;
-  statsDescription: string;
+  statsDescription?: string;
 }
 
 export const DashboardCard = ({

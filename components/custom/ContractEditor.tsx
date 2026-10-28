@@ -281,7 +281,6 @@ const ContractEditor = (props: IContractEditor) => {
         if (!initialDocument) {
           const createPayload: ICreateContractRequest = {
             ...basePayload,
-            idAuthor: currentUser.id,
             idTemplate: workingDocument.idTemplate,
           };
           await createContract(createPayload).unwrap();

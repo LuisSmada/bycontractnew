@@ -63,7 +63,6 @@ interface IContractGeneric {
 }
 
 export interface ICreateContractRequest extends Omit<IContractGeneric, "id"> {
-  idAuthor: UniqueID;
   idCompany: UniqueID;
   bodyJson: object;
   bodyText: string;
@@ -83,6 +82,7 @@ export interface IListContractResponse {
   modifiedAt: string;
   expirationDate: string | null;
   idTemplate: string | null;
+  value: number;
 }
 
 export interface IFindContractResponse extends IContractGeneric {
@@ -158,4 +158,17 @@ export interface IParticularStakeholderListResponse {
   totalPages: number;
   size: number;
   number: number;
+}
+
+// ------------------USER ------------------------//
+export interface IUpdateUserRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
+export interface IChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
 }

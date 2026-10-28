@@ -130,7 +130,9 @@ export const StakeholdersPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredStakeholders.length === 0 ? (
             <div className="col-span-full py-12 text-center text-slate-500">
-              Aucun tiers trouvé pour {searchQuery}
+              {searchQuery
+                ? `Aucun tiers trouvé pour ${searchQuery}.`
+                : "Aucun tiers."}
             </div>
           ) : (
             filteredStakeholders.map((sth) => {

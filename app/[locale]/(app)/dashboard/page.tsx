@@ -9,7 +9,7 @@ import { DashboardStatusChart } from "./DashboardStatusChart";
 import { useGetAllContractsQuery } from "@/src/store/api/contractsSlice";
 import { LoadingScreen } from "@/components/custom/LoadingScreen";
 import { ErrorScreen } from "@/components/custom/ErrorScreen";
-import { EContractType } from "@/src/model/entities";
+import { EContractStatus, EContractType } from "@/src/model/entities";
 
 export default function DashboardPage() {
   const currentUser = useAppSelector(currentUserSelector);
@@ -32,16 +32,38 @@ export default function DashboardPage() {
   const contracts = data ?? [];
 
   const activeContractsCount = contracts?.filter(
-    (c) => c.status === "ACTIVE",
+    (c) =>
+      c.status === EContractStatus.ACTIVE ||
+      c.status === EContractStatus.SIGNED,
   ).length;
   const pendingContractsCount = contracts?.filter(
-    (c) => c.status === "PENDING",
+    (c) => c.status === EContractStatus.PENDING,
   ).length;
   const riskedContractsCount = contracts?.filter(
-    (c) => c.status === "RISKED",
+    (c) => c.status === EContractStatus.RISKED,
   ).length;
 
-  const countTasks = 3;
+  const walletValue = contracts.reduce((acc, contract) => {
+    if (
+      contract.status === EContractStatus.ACTIVE ||
+      contract.status === EContractStatus.SIGNED ||
+      contract.status === EContractStatus.EXPIRED ||
+      contract.status === EContractStatus.PENDING
+    ) {
+      acc = acc + contract.value;
+    }
+    return acc;
+  }, 0);
+
+  const allContractsCount =
+    activeContractsCount + pendingContractsCount + riskedContractsCount;
+
+  const contractPercentage = (count: number) => {
+    if (allContractsCount === 0) {
+      return 0;
+    }
+    return (count / allContractsCount) * 100;
+  };
 
   return (
     <div className="p-8 w-full mx-auto space-y-8 flex-1 pb-32 overflow-y-auto no-scrollbar ">
@@ -56,9 +78,9 @@ export default function DashboardPage() {
             Vous avez{" "}
             <span
               id="dashboard-task-counter"
-              className="text-indigo-600 font-semibold underline"
+              className="text-ui-brand font-semibold"
             >
-              {countTasks} tâches critiques
+              {riskedContractsCount} tâche(s) critique(s)
             </span>{" "}
             à accomplir aujourd hui.
           </p>
@@ -80,7 +102,7 @@ export default function DashboardPage() {
           textColor={"text-emerald-600"}
           bgColor={"bg-emerald-50/80"}
           statsNumber={activeContractsCount.toString()}
-          statsDescription={"+0%"}
+          // statsDescription={"+0%"}
         />
 
         <DashboardCard
@@ -106,8 +128,8 @@ export default function DashboardPage() {
           Icon={Euro}
           textColor={"text-indigo-600"}
           bgColor={"bg-indigo-50/80"}
-          statsNumber={"3.5M€"}
-          statsDescription={"+8.1%"}
+          statsNumber={`${walletValue}€`}
+          // statsDescription={"+8.1%"}
         />
       </div>
 
@@ -130,13 +152,13 @@ export default function DashboardPage() {
               id="urgent-count-badge"
               className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-md font-medium"
             >
-              {countTasks} Tâches actives
+              {riskedContractsCount} Tâches actives
             </span>
           </div>
 
           <div id="urgent-tasks-container" className="space-y-4 ">
             {/* <!-- Dynamically populated from JS state to allow status changes! --> */}
-            <DashboardTask
+            {/* <DashboardTask
               contractType={EContractType.CDI}
               title="Corriger CDI Sophie Dubois"
               alert="Clause de non-concurrence non conforme"
@@ -173,7 +195,7 @@ export default function DashboardPage() {
               secondaryActionLabel="Inspecter"
               onPrimaryAction={() => console.log("Signer")}
               onSecondaryAction={() => console.log("Inspecter")}
-            />
+            /> */}
           </div>
         </div>
 
@@ -189,14 +211,18 @@ export default function DashboardPage() {
             </div>
 
             <div className="relative flex items-center justify-center my-6">
-              <DashboardStatusChart signed={50} pending={33} risk={17} />
+              <DashboardStatusChart
+                signed={activeContractsCount}
+                pending={pendingContractsCount}
+                risk={riskedContractsCount}
+              />
 
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span
                   id="donut-total"
                   className="text-xl font-bold font-display text-slate-900"
                 >
-                  6
+                  {allContractsCount}
                 </span>
                 <span className="text-[9px] text-slate-400 uppercase font-semibold tracking-wider">
                   contrats
@@ -208,19 +234,31 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2 font-medium text-slate-600">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  Signés (<span id="legend-signed-pct">50</span>%)
+                  Signés (
+                  <span id="legend-signed-pct">
+                    {contractPercentage(activeContractsCount)}
+                  </span>
+                  %)
                 </div>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2 font-medium text-slate-600">
                   <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                  En attente (<span id="legend-pending-pct">33</span>%)
+                  En attente (
+                  <span id="legend-pending-pct">
+                    {contractPercentage(pendingContractsCount)}
+                  </span>
+                  %)
                 </div>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2 font-medium text-slate-600">
                   <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                  Alertes/Risques (<span id="legend-risk-pct">17</span>%)
+                  Alertes/Risques (
+                  <span id="legend-risk-pct">
+                    {contractPercentage(riskedContractsCount)}
+                  </span>
+                  %)
                 </div>
               </div>
             </div>

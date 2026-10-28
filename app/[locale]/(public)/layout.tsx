@@ -1,9 +1,12 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
+import { motion } from "motion/react";
+import { PublicLayoutContent } from "./PublicLayoutContent";
 
 interface IPublicLayoutProps {
   children: ReactNode;
 }
 
 export default function PublicLayout({ children }: IPublicLayoutProps) {
-  return <div className="bg-gray-50">{children}</div>;
+  return <PublicLayoutContent>{children}</PublicLayoutContent>;
 }

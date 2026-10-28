@@ -127,7 +127,7 @@ export const Topbar = () => {
                 <Avatar>
                   {/* <AvatarImage src="https://github.com/shadcn.png" /> */}
                   <AvatarFallback>{avatarInitials}</AvatarFallback>
-                  <AvatarBadge className="bg-green-600 dark:bg-green-800" />
+                  {/* <AvatarBadge className="bg-green-600 dark:bg-green-800" /> */}
                 </Avatar>
                 <div className="hidden sm:flex flex-col text-left">
                   <p className="text-xs font-semibold text-slate-200 group-hover:text-ui-brand transition-colors leading-none">

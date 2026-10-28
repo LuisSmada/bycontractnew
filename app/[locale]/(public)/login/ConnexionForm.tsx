@@ -80,7 +80,7 @@ export const ConnexionForm = () => {
     hasError ? "border-red-500" : "";
 
   return (
-    <div className="flex w-full h-full flex-col px-8 py-12 md:px-16 md:py-20 justify-center relative">
+    <div className="flex w-full h-full flex-col px-8 py-12 md:px-16 md:py-10 justify-center relative overflow-y-auto custom-scrollbar">
       <div className="mb-10">
         <Image
           src={"/svg/BYC.svg"}
@@ -147,6 +147,14 @@ export const ConnexionForm = () => {
             disabled={isLoading}
             {...register("userPassword")}
           />
+          <div className="w-full flex justify-end mt-2">
+            <Link
+              href="/fr/forgot-password" // 👈 Adapte la route si besoin
+              className="text-xs font-bold text-ui-brand hover:underline transition-all"
+            >
+              Mot de passe oublié ?
+            </Link>
+          </div>
         </div>
 
         {/* CHAMP CHECKBOX (Nécessite le composant Controller de RHF) */}
