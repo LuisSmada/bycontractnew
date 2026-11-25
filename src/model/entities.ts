@@ -25,7 +25,11 @@ export interface IDashboardTabsListType {
   title: string;
 }
 
-export type TUserRole = "USER" | "ADMIN";
+export enum EUserRole {
+  USER = "USER",
+  ADMIN = "ADMIN",
+  SUPER_ADMIN = "SUPER_ADMIN",
+}
 
 export interface IUser {
   id: UniqueID;
@@ -34,7 +38,7 @@ export interface IUser {
   email: string;
   createdAt?: string;
   modifiedAt: string;
-  role?: TUserRole;
+  role?: EUserRole;
 }
 
 export interface IMainContactCompany {

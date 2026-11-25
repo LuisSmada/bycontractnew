@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { IUser } from "@/src/model/entities";
-import { operationError, operationSuccess } from "@/src/utils/operationsToasts";
+import { operationSuccess } from "@/src/utils/operationsToasts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FC, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -29,7 +29,7 @@ const profileSchema = z.object({
   email: z.email("Veuillez entrer une adresse email valide."),
 });
 
-type ProfileFormValues = z.infer<typeof profileSchema>;
+type TProfileFormValues = z.infer<typeof profileSchema>;
 
 export const ProfileSection: FC<IProfileSection> = ({ currentUser }) => {
   const [updateUser, { isLoading: isUpdatingUser }] = useUpdateUserMutation();
@@ -46,7 +46,7 @@ export const ProfileSection: FC<IProfileSection> = ({ currentUser }) => {
       isDirty: isProfileDirty,
       isSubmitting: isUpdatingProfile,
     },
-  } = useForm<ProfileFormValues>({
+  } = useForm<TProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       firstName: currentUser.firstName,
@@ -56,7 +56,7 @@ export const ProfileSection: FC<IProfileSection> = ({ currentUser }) => {
   });
 
   // --- SOUMISSION : PROFIL ---
-  const onSubmitProfile = async (data: ProfileFormValues) => {
+  const onSubmitProfile = async (data: TProfileFormValues) => {
     try {
       const payload: Partial<IUpdateUserRequest> = {
         firstName: data.firstName,

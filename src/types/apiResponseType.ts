@@ -6,6 +6,16 @@ import {
   UniqueID,
 } from "../model/entities";
 
+export interface PageResponse<T> {
+  content: T[];
+  page: {
+    size: number;
+    number: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
 // ------------------TEMPLATE------------------------//
 
 export interface ICreateTemplateRequest {
@@ -25,6 +35,13 @@ export interface ITemplateResponse {
 }
 
 export interface IFindTemplate extends ITemplateResponse {
+  body: object;
+  variablesDefinition: string;
+}
+
+export interface IUpdateTemplateRequest {
+  name: string;
+  status: EContractStatus;
   body: object;
   variablesDefinition: string;
 }
@@ -83,6 +100,12 @@ export interface IListContractResponse {
   expirationDate: string | null;
   idTemplate: string | null;
   value: number;
+}
+
+export interface IGetContractsParams {
+  page?: number;
+  size?: number;
+  sort?: string;
 }
 
 export interface IFindContractResponse extends IContractGeneric {
@@ -171,4 +194,63 @@ export interface IUpdateUserRequest {
 export interface IChangePasswordRequest {
   oldPassword: string;
   newPassword: string;
+}
+
+// ------------------SUBSCRIPTION ------------------------//
+export interface ICheckoutPaymentRequest {
+  idPrice: string;
+  successUrl: string;
+  cancelUrl: string;
+}
+
+export interface IOpenCustomerPortalRequest {
+  returnUrl: string;
+}
+
+export enum ESubscriptionStatus {
+  ACTIVE = "active",
+  TRIALING = "trialing",
+  CANCELED = "canceled",
+  PAST_DUE = "past_due",
+  INACTIVE = "inactive",
+  CANCEL_AT_THE_END = "cancel_at_the_end",
+}
+
+export interface ISubscriptionStatusResponse {
+  status: ESubscriptionStatus;
+  trialEndDate: string;
+  cardBrand: string;
+  cardLast4: string;
+  planName: string;
+  planPrice: string;
+  currentPeriodEnd: string;
+}
+
+export enum EInvoiceStatus {
+  PAID = "paid",
+  OPEN = "open",
+  VOID = "void",
+  UNCOLLETIBLE = "uncollectible",
+  DRAFT = "draft",
+}
+
+export interface ISubscriptionInvoiceResponse {
+  id: string;
+  number: string;
+  date: string;
+  amount: number;
+  currency: string;
+  status: EInvoiceStatus;
+  invoicePdfUrl: string | null;
+  hostedInvoiceUrl: string | null;
+}
+
+export interface IFacturationInformations {
+  name: string;
+  email: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  postalCode: string;
+  country: string;
 }

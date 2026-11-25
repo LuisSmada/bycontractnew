@@ -7,8 +7,6 @@ import {
   IUpdateContractRequest,
   IUploadSignedContractRequest,
 } from "@/src/types/apiResponseType";
-import { TRootState } from "../store";
-import { EContractStatus } from "@/src/model/entities";
 
 export const contractsSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({

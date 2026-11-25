@@ -10,17 +10,17 @@ export const RegisterPage = () => {
       <div className="hidden lg:flex w-2/3 flex-col items-center justify-center pt-24 bg-gray-50">
         <div className="mb-12">
           <Image
-            src={"/svg/BYCONTRACT.svg"}
+            src="/svg/BYCONTRACT.svg"
             alt="BYCONTRACT Logo"
             className="w-40"
             width={160}
             height={160}
-            loading={"eager"}
+            loading="eager"
           />
         </div>
         <div className="w-full flex justify-center mt-8">
           <Image
-            src={"/images/homemeeting.png"}
+            src="/images/homemeeting.png"
             alt="Home Meeting"
             className="w-full max-w-125 h-auto object-contain"
             width={571}

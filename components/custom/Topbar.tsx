@@ -4,7 +4,6 @@ import Image from "next/image";
 import React, { useMemo, useState } from "react";
 import { Avatar, AvatarBadge, AvatarFallback } from "../ui/avatar";
 import { useAppSelector } from "@/src/store/reduxHooks";
-import { currentUserSelector } from "@/src/store/selectors";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,18 +22,30 @@ import {
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Button } from "../ui/button";
-import { useLogoutMutation } from "@/src/store/api/authApiSlice";
-import { toast } from "sonner";
-import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
+import {
+  currentUserSelector,
+  useLogoutMutation,
+} from "@/src/store/api/authApiSlice";
 import { useDispatch } from "react-redux";
 import { apiSlice } from "@/src/store/api/apiSlice";
-import { TOASTSTYLES } from "@/src/utils/toastsCSSUtils";
+import { responseErrorApi } from "@/src/utils/responseErrorApi";
+import { subscriptionStatusDataSelector } from "@/src/store/api/subscriptionsApiSlice";
+import {
+  assertsNonNullable,
+  calculateSubscriptionDaysLeft,
+} from "@/src/helpers/generic";
+import { ESubscriptionStatus } from "@/src/types/apiResponseType";
+import { EUserRole } from "@/src/model/entities";
 
 export const Topbar = () => {
   const router = useRouter();
   const currentUser = useAppSelector(currentUserSelector);
+  assertsNonNullable(currentUser);
+  const subscriptionStatusData = useAppSelector(subscriptionStatusDataSelector);
 
   const dispatch = useDispatch();
+
+  const [logout, { isLoading }] = useLogoutMutation();
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -44,31 +55,49 @@ export const Topbar = () => {
     return `${firstName.charAt(0).toUpperCase()}${lastName.charAt(0).toUpperCase()}`;
   }, [currentUser]);
 
-  const [logout, { isLoading }] = useLogoutMutation();
+  const billingStatus = subscriptionStatusData?.status;
+  const trialDaysLeft = calculateSubscriptionDaysLeft(
+    subscriptionStatusData?.trialEndDate,
+  );
 
   const handleLogout = async () => {
     try {
-      // On utilise .unwrap() pour pouvoir capturer l'erreur directement dans le catch
       await logout().unwrap();
       dispatch(apiSlice.util.resetApiState());
-      // toast.success("Logout successfully", {
-      //   position: "top-right",
-      //   style: TOASTSTYLES.SUCCESS,
-      // });
       router.replace("/fr/login");
     } catch (err: unknown) {
-      const error = err as FetchBaseQueryError;
-      if (error) {
-        toast.error(
-          "Une erreur est survenue lors de la connexion au serveur.",
-          {
-            position: "top-right",
-            style: TOASTSTYLES.ERROR,
-          },
-        );
-      }
+      responseErrorApi(err);
     }
   };
+
+  const getBillingBadge = () => {
+    switch (billingStatus) {
+      case ESubscriptionStatus.ACTIVE:
+      case ESubscriptionStatus.CANCEL_AT_THE_END:
+        return {
+          text: "Pro",
+          style: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+          dot: "bg-emerald-400",
+        };
+      case ESubscriptionStatus.TRIALING:
+        return {
+          text: `Essai : ${trialDaysLeft}j restants`,
+          style: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+          dot: "bg-amber-400",
+        };
+      case ESubscriptionStatus.CANCELED:
+      case ESubscriptionStatus.INACTIVE:
+      case ESubscriptionStatus.PAST_DUE:
+      default:
+        return {
+          text: "Expiré",
+          style: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+          dot: "bg-rose-500",
+        };
+    }
+  };
+
+  const badge = getBillingBadge();
 
   return (
     <div className="fixed top-0 left-0 right-0 h-14 bg-[#0a0e1a] border-b border-slate-900 flex items-center justify-between px-6 z-40 shadow-md">
@@ -106,6 +135,13 @@ export const Topbar = () => {
       </motion.div>
 
       <div className="flex space-x-5 justify-between items-center">
+        <div
+          className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold tracking-wide uppercase transition-colors cursor-default ${badge.style}`}
+        >
+          <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`}></span>
+          {badge.text}
+        </div>
+
         <Button
           onClick={() => {}}
           className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all-custom relative cursor-pointer"
@@ -133,9 +169,11 @@ export const Topbar = () => {
                   <p className="text-xs font-semibold text-slate-200 group-hover:text-ui-brand transition-colors leading-none">
                     {currentUser.firstName} {currentUser.lastName}{" "}
                   </p>
-                  {/* <span className="text-[10px] text-slate-500 mt-1">
-                    {currentUser.role}
-                  </span> */}
+                  {currentUser.role !== EUserRole.USER && (
+                    <span className="text-[10px] text-slate-500 mt-1">
+                      {currentUser.role}
+                    </span>
+                  )}
                 </div>
                 <ChevronDown className="text-slate-200 w-3" />
               </div>

@@ -21,7 +21,7 @@ export const sanitizeDate = (dateString: string) => {
   // Formate automatiquement en JJ/MM/AAAA (norme française)
   return date.toLocaleDateString("fr-FR", {
     day: "2-digit",
-    month: "2-digit",
+    month: "short",
     year: "numeric",
   });
 };
@@ -51,4 +51,29 @@ export const formatFileSize = (bytes: number) => {
   const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
+
+export const calculateSubscriptionDaysLeft = (
+  endDateString: string | undefined,
+): number => {
+  if (!endDateString) return 0;
+
+  const endDate = new Date(endDateString);
+  const today = new Date();
+
+  // On réinitialise les heures, minutes et secondes à zéro
+  // pour que la différence se fasse uniquement sur des "jours entiers"
+  endDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  // Différence en millisecondes
+  const diffTime = endDate.getTime() - today.getTime();
+
+  // Si la date de fin est passée (différence négative), on renvoie 0
+  if (diffTime <= 0) return 0;
+
+  // Conversion des millisecondes en jours (1000 ms * 60 s * 60 min * 24 h)
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays;
 };

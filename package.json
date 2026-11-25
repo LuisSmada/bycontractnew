@@ -50,6 +50,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cn": "^0.4.0",
+    "input-otp": "^1.5.0",
     "lodash.throttle": "^4.1.1",
     "lucide-react": "^1.17.0",
     "moment": "^2.30.1",

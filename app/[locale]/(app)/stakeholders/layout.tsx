@@ -5,7 +5,5 @@ export default function StakeholdersLayout({
 }: {
   children: ReactNode;
 }) {
-  return (
-    <div className="w-full mt-15 overflow-y-auto min-h-full">{children}</div>
-  );
+  return <div className="w-full overflow-y-auto min-h-full">{children}</div>;
 }

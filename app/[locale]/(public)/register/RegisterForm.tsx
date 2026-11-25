@@ -1,21 +1,21 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/lib/utils";
+import { useInitiateRegistrationMutation } from "@/src/store/api/authApiSlice";
+import { operationError, operationSuccess } from "@/src/utils/operationsToasts";
+import { OtpVerificationStep } from "./OtpVerificationStep";
 import { PasswordInput } from "@/components/custom/PasswordInput";
-import { operationSuccess, operationError } from "@/src/utils/operationsToasts";
-import { useRegisterUserMutation } from "@/src/store/api/authApiSlice";
 
 const registerSchema = z
   .object({
@@ -36,8 +36,11 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export const RegisterForm = () => {
-  const router = useRouter();
-  const [registerUser, { isLoading }] = useRegisterUserMutation();
+  const [step, setStep] = useState<"FORM" | "OTP">("FORM");
+  const [pendingEmail, setPendingEmail] = useState("");
+
+  const [initiateRegistration, { isLoading }] =
+    useInitiateRegistrationMutation();
 
   const {
     register,
@@ -58,20 +61,21 @@ export const RegisterForm = () => {
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      await registerUser({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
+      await initiateRegistration({
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        email: data.email.trim().toLowerCase(),
         password: data.password,
       }).unwrap();
 
-      operationSuccess("Compte créé avec succès ! Bienvenue.");
-      router.push("/fr/dashboard");
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      setPendingEmail(data.email.trim().toLowerCase());
+      setStep("OTP");
+      operationSuccess("Code de vérification envoyé par email.");
     } catch (err: unknown) {
-      operationError(
-        "Impossible de créer le compte. L'email est peut-être déjà utilisé.",
-      );
+      const message =
+        (err as { data?: { message?: string } })?.data?.message ||
+        "Impossible de créer le compte. L'email est peut-être déjà utilisé.";
+      operationError(message);
     }
   };
 
@@ -86,7 +90,7 @@ export const RegisterForm = () => {
     <div className="flex w-full h-full flex-col px-8 py-12 md:px-16 md:py-10 justify-center relative overflow-y-auto custom-scrollbar">
       <div className="mb-8">
         <Image
-          src={"/svg/BYC.svg"}
+          src="/svg/BYC.svg"
           alt="Logo Miniaturized"
           className="w-24"
           width={96}
@@ -94,197 +98,200 @@ export const RegisterForm = () => {
         />
       </div>
 
-      <form
-        onSubmit={handleSubmit(onSubmit, onInvalid)}
-        className="flex flex-col w-full max-w-sm"
-      >
-        <h1 className="text-2xl font-bold text-ui-text mb-2">
-          Créer un compte
-        </h1>
-        <p className="text-sm text-ui-textSubtle font-medium mb-8">
-          Rejoignez BYCONTRACT en quelques secondes
-        </p>
+      {step === "OTP" ? (
+        <OtpVerificationStep
+          email={pendingEmail}
+          onBack={() => setStep("FORM")}
+        />
+      ) : (
+        <form
+          onSubmit={handleSubmit(onSubmit, onInvalid)}
+          className="flex flex-col w-full max-w-sm"
+        >
+          <h1 className="text-2xl font-bold text-ui-text mb-2">
+            Créer un compte
+          </h1>
+          <p className="text-sm text-ui-textSubtle font-medium mb-8">
+            Rejoignez BYCONTRACT en quelques secondes
+          </p>
 
-        {/* PRÉNOM & NOM (Sur une même ligne) */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="flex flex-col">
-            <div className="flex justify-between items-center">
+          {/* PRÉNOM & NOM */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="flex flex-col">
               <Label className="text-sm font-medium text-ui-text mb-1">
                 Prénom
               </Label>
-            </div>
-            <Input
-              type="text"
-              className={cn(
-                "input-form focus-visible:ring-transparent",
-                getErrorClass(!!errors.firstName),
+              <Input
+                type="text"
+                className={cn(
+                  "input-form focus-visible:ring-transparent",
+                  getErrorClass(!!errors.firstName),
+                )}
+                disabled={isLoading}
+                {...register("firstName")}
+              />
+              {errors.firstName && (
+                <span className="text-xs text-red-500 mt-1">
+                  {errors.firstName.message}
+                </span>
               )}
-              disabled={isLoading}
-              {...register("firstName")}
-            />
-            {errors.firstName && (
-              <span className="text-xs text-red-500 mt-1">
-                {errors.firstName.message}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col">
-            <div className="flex justify-between items-center">
+            </div>
+            <div className="flex flex-col">
               <Label className="text-sm font-medium text-ui-text mb-1">
                 Nom
               </Label>
+              <Input
+                type="text"
+                className={cn(
+                  "input-form focus-visible:ring-transparent",
+                  getErrorClass(!!errors.lastName),
+                )}
+                disabled={isLoading}
+                {...register("lastName")}
+              />
+              {errors.lastName && (
+                <span className="text-xs text-red-500 mt-1">
+                  {errors.lastName.message}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* EMAIL */}
+          <div className="flex flex-col mb-4">
+            <div className="flex justify-between items-center">
+              <Label className="text-sm font-medium text-ui-text mb-1">
+                Adresse Email
+              </Label>
+              {errors.email && (
+                <span className="text-xs text-red-500 mt-1">
+                  {errors.email.message}
+                </span>
+              )}
             </div>
             <Input
-              type="text"
+              type="email"
               className={cn(
                 "input-form focus-visible:ring-transparent",
-                getErrorClass(!!errors.lastName),
+                getErrorClass(!!errors.email),
               )}
               disabled={isLoading}
-              {...register("lastName")}
+              {...register("email")}
             />
-            {errors.lastName && (
-              <span className="text-xs text-red-500 mt-1">
-                {errors.lastName.message}
-              </span>
-            )}
           </div>
-        </div>
 
-        {/* EMAIL */}
-        <div className="flex flex-col mb-4">
-          <div className="flex justify-between items-center">
-            <Label className="text-sm font-medium text-ui-text mb-1">
-              Adresse Email
-            </Label>
-            {errors.email && (
-              <span className="text-xs text-red-500 mt-1">
-                {errors.email.message}
-              </span>
-            )}
-          </div>
-          <Input
-            type="email"
-            className={cn(
-              "input-form focus-visible:ring-transparent",
-              getErrorClass(!!errors.email),
-            )}
-            disabled={isLoading}
-            {...register("email")}
-          />
-        </div>
-
-        {/* MOT DE PASSE */}
-        <div className="flex flex-col mb-4">
-          <div className="flex justify-between items-center">
-            <Label className="text-sm font-medium text-ui-text mb-1">
-              Mot de passe
-            </Label>
-            {errors.password && (
-              <span className="text-xs text-red-500 mt-1">
-                {errors.password.message}
-              </span>
-            )}
-          </div>
-          <PasswordInput
-            className={cn(
-              "input-form focus-visible:ring-transparent",
-              getErrorClass(!!errors.password),
-            )}
-            disabled={isLoading}
-            {...register("password")}
-          />
-        </div>
-
-        {/* CONFIRMATION MOT DE PASSE */}
-        <div className="flex flex-col mb-6">
-          <div className="flex justify-between items-center">
-            <Label className="text-sm font-medium text-ui-text mb-1">
-              Confirmer le mot de passe
-            </Label>
-            {errors.confirmPassword && (
-              <span className="text-xs text-red-500 mt-1">
-                {errors.confirmPassword.message}
-              </span>
-            )}
-          </div>
-          <PasswordInput
-            className={cn(
-              "input-form focus-visible:ring-transparent",
-              getErrorClass(!!errors.confirmPassword),
-            )}
-            disabled={isLoading}
-            {...register("confirmPassword")}
-          />
-        </div>
-
-        {/* CGU CHECKBOX */}
-        <div className="flex flex-col mb-8">
-          <div className="flex items-center gap-2">
-            <Controller
-              name="acceptTerms"
-              control={control}
-              render={({ field }) => (
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  disabled={isLoading}
-                  className={cn(
-                    "data-checked:bg-ui-brand data-checked:border-0",
-                    errors.acceptTerms && "border-red-500",
-                  )}
-                />
+          {/* MOT DE PASSE */}
+          <div className="flex flex-col mb-4">
+            <div className="flex justify-between items-center">
+              <Label className="text-sm font-medium text-ui-text mb-1">
+                Mot de passe
+              </Label>
+              {errors.password && (
+                <span className="text-xs text-red-500 mt-1">
+                  {errors.password.message}
+                </span>
               )}
-            />
-            <Controller
-              name="acceptTerms"
-              control={control}
-              render={({ field }) => (
-                <label
-                  className="text-sm font-medium text-ui-text cursor-pointer select-none"
-                  onClick={() => {
-                    if (!isLoading) field.onChange(!field.value);
-                  }}
-                >
-                  {"J'accepte les conditions d'utilisation"}
-                </label>
+            </div>
+            <PasswordInput
+              className={cn(
+                "input-form focus-visible:ring-transparent",
+                getErrorClass(!!errors.password),
               )}
+              disabled={isLoading}
+              {...register("password")}
             />
           </div>
-          {errors.acceptTerms && (
-            <span className="text-xs text-red-500 mt-1">
-              {errors.acceptTerms.message}
-            </span>
-          )}
-        </div>
 
-        {/* BOUTON SOUMISSION */}
-        <Button
-          type="submit"
-          className="w-full justify-center primary-button mb-6"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <span className="flex items-center gap-2">
-              <Spinner className="size-4 text-white" />
-              Création en cours
-            </span>
-          ) : (
-            "Créer mon compte"
-          )}
-        </Button>
+          {/* CONFIRMATION MOT DE PASSE */}
+          <div className="flex flex-col mb-6">
+            <div className="flex justify-between items-center">
+              <Label className="text-sm font-medium text-ui-text mb-1">
+                Confirmer le mot de passe
+              </Label>
+              {errors.confirmPassword && (
+                <span className="text-xs text-red-500 mt-1">
+                  {errors.confirmPassword.message}
+                </span>
+              )}
+            </div>
+            <PasswordInput
+              className={cn(
+                "input-form focus-visible:ring-transparent",
+                getErrorClass(!!errors.confirmPassword),
+              )}
+              disabled={isLoading}
+              {...register("confirmPassword")}
+            />
+          </div>
 
-        {/* LIEN RETOUR CONNEXION */}
-        <p className="text-center text-sm text-ui-textSubtle">
-          Vous avez déjà un compte ?{" "}
-          <Link
-            href="/fr/login" // À adapter avec ta vraie route
-            className="text-ui-brand font-bold hover:underline"
+          {/* CGU CHECKBOX */}
+          <div className="flex flex-col mb-8">
+            <div className="flex items-center gap-2">
+              <Controller
+                name="acceptTerms"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isLoading}
+                    className={cn(
+                      "data-checked:bg-ui-brand data-checked:border-0",
+                      errors.acceptTerms && "border-red-500",
+                    )}
+                  />
+                )}
+              />
+              <Controller
+                name="acceptTerms"
+                control={control}
+                render={({ field }) => (
+                  <label
+                    className="text-sm font-medium text-ui-text cursor-pointer select-none"
+                    onClick={() => {
+                      if (!isLoading) field.onChange(!field.value);
+                    }}
+                  >
+                    {"J'accepte les conditions d'utilisation"}
+                  </label>
+                )}
+              />
+            </div>
+            {errors.acceptTerms && (
+              <span className="text-xs text-red-500 mt-1">
+                {errors.acceptTerms.message}
+              </span>
+            )}
+          </div>
+
+          {/* BOUTON SOUMISSION */}
+          <Button
+            type="submit"
+            className="w-full justify-center primary-button mb-6"
+            disabled={isLoading}
           >
-            Connectez-vous
-          </Link>
-        </p>
-      </form>
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <Spinner className="size-4 text-white" />
+                Envoi du code...
+              </span>
+            ) : (
+              "Créer mon compte"
+            )}
+          </Button>
+
+          {/* LIEN RETOUR CONNEXION */}
+          <p className="text-center text-sm text-ui-textSubtle">
+            Vous avez déjà un compte ?{" "}
+            <Link
+              href="/fr/login"
+              className="text-ui-brand font-bold hover:underline"
+            >
+              Connectez-vous
+            </Link>
+          </p>
+        </form>
+      )}
 
       <div className="mt-10">
         <Button

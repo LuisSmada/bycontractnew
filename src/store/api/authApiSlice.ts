@@ -3,7 +3,9 @@ import {
   IAuthCredentials,
   IAuthResponse,
   IForgotPasswordRequest,
-  IRegisterUserRequest,
+  IRegisterInitiateRequest,
+  IRegisterVerifyRequest,
+  IResendOtpRequest,
   IResetPasswordRequest,
 } from "@/src/types/authTypes";
 import { apiSlice } from "./apiSlice";
@@ -11,13 +13,30 @@ import { createSelector } from "@reduxjs/toolkit";
 
 export const authApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    registerUser: builder.mutation<IAuthResponse, IRegisterUserRequest>({
-      query: (credentials) => ({
-        url: "/auth/register",
+    initiateRegistration: builder.mutation<void, IRegisterInitiateRequest>({
+      query: (body) => ({
+        url: "/auth/register/initiate",
         method: "POST",
-        body: credentials,
+        body,
+      }),
+    }),
+    verifyRegistration: builder.mutation<
+      { message: string },
+      IRegisterVerifyRequest
+    >({
+      query: (body) => ({
+        url: "/auth/register/verify",
+        method: "POST",
+        body,
       }),
       invalidatesTags: ["User"],
+    }),
+    resendOtp: builder.mutation<void, IResendOtpRequest>({
+      query: (body) => ({
+        url: "/auth/register/resend",
+        method: "POST",
+        body,
+      }),
     }),
     // - User : Le format de la donnée renvoyée par Spring Boot
     // - void : Indique strictement à TypeScript qu'aucun argument n'est requis
@@ -70,7 +89,9 @@ export const {
   useGetCurrentUserQuery,
   useLoginMutation,
   useLogoutMutation,
-  useRegisterUserMutation,
+  useInitiateRegistrationMutation,
+  useVerifyRegistrationMutation,
+  useResendOtpMutation,
   useForgotPasswordMutation,
   useResetPasswordMutation,
 } = authApiSlice;

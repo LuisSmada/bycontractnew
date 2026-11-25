@@ -1,26 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { User, CreditCard, Users, Blocks } from "lucide-react";
+import { User, CreditCard, Users, Blocks, ReceiptText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProfileSection } from "./ProfileSection";
 import { BillingSection } from "./BillingSection";
 import { useAppSelector } from "@/src/store/reduxHooks";
-import { currentUserSelector } from "@/src/store/selectors";
+import { InvoicesSection } from "./InvoicesSection";
+import { FacturationDetailsSection } from "./FacturationDetailsSection";
+import { currentUserSelector } from "@/src/store/api/authApiSlice";
+import { assertsNonNullable } from "@/src/helpers/generic";
+import { current } from "@reduxjs/toolkit";
 
 // Configuration du menu pour l'évolutivité
 const SETTINGS_MENU = [
   { id: "profile", label: "Profil & Sécurité", icon: User },
-  { id: "billing", label: "Abonnement & Facturation", icon: CreditCard },
+  { id: "billing", label: "Abonnement & Infos", icon: CreditCard },
+  { id: "invoices", label: "Factures", icon: ReceiptText },
   { id: "team", label: "Membres de l'équipe", icon: Users },
   { id: "integrations", label: "Intégrations (API/CRM)", icon: Blocks },
 ] as const;
 
-type SettingsTab = (typeof SETTINGS_MENU)[number]["id"];
+type TSettingsTab = (typeof SETTINGS_MENU)[number]["id"];
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
+  const [activeTab, setActiveTab] = useState<TSettingsTab>("profile");
   const currentUser = useAppSelector(currentUserSelector);
+  assertsNonNullable(currentUser);
 
   return (
     <div
@@ -68,7 +74,18 @@ export default function SettingsPage() {
             {activeTab === "profile" && (
               <ProfileSection currentUser={currentUser} />
             )}
-            {activeTab === "billing" && <BillingSection />}
+            {activeTab === "billing" && (
+              <>
+                <BillingSection />
+                <FacturationDetailsSection />
+              </>
+            )}
+
+            {activeTab === "invoices" && (
+              <>
+                <InvoicesSection />
+              </>
+            )}
 
             {/* Zones prévues pour plus tard */}
             {activeTab === "team" && (

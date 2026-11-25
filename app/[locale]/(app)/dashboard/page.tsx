@@ -1,7 +1,6 @@
 "use client";
 
 import { useAppSelector } from "@/src/store/reduxHooks";
-import { currentUserSelector } from "@/src/store/selectors";
 import { CircleCheck, Euro, Pencil, TriangleAlert } from "lucide-react";
 import { DashboardCard } from "./DashboardCard";
 import { DashboardTask } from "./DashboardTask";
@@ -10,9 +9,12 @@ import { useGetAllContractsQuery } from "@/src/store/api/contractsSlice";
 import { LoadingScreen } from "@/components/custom/LoadingScreen";
 import { ErrorScreen } from "@/components/custom/ErrorScreen";
 import { EContractStatus, EContractType } from "@/src/model/entities";
+import { currentUserSelector } from "@/src/store/api/authApiSlice";
+import { assertsNonNullable } from "@/src/helpers/generic";
 
 export default function DashboardPage() {
   const currentUser = useAppSelector(currentUserSelector);
+  assertsNonNullable(currentUser);
   const { data, isLoading, isError, refetch } = useGetAllContractsQuery();
 
   if (isLoading) {
