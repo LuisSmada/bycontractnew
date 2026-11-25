@@ -31,7 +31,7 @@ export const BillingBanner: FC<IBillingBanner> = ({ subscriptionData }) => {
   // Si l'abonnement est actif ou s'il reste plus de 7 jours d'essai, on n'affiche rien
   if (
     status === ESubscriptionStatus.ACTIVE ||
-    status === ESubscriptionStatus.CANCELING_AT_THE_END ||
+    status === ESubscriptionStatus.CANCEL_AT_THE_END ||
     (status === ESubscriptionStatus.TRIALING && trialDaysLeft > 7)
   ) {
     return null;
