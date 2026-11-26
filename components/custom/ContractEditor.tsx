@@ -25,7 +25,9 @@ import {
 } from "@/src/helpers/generic";
 import {
   ICreateContractRequest,
+  ICreateTemplateRequest,
   IUpdateContractRequest,
+  IUpdateTemplateRequest,
   TContractEditorDocument,
 } from "@/src/types/apiResponseType";
 import { ContractEditorContextBar } from "./ContractEditorContextBar";
@@ -37,7 +39,11 @@ import {
   operationSuccess,
   operationWarning,
 } from "@/src/utils/operationsToasts";
-import { useGetTemplateByIdQuery } from "@/src/store/api/templatesApiSlice";
+import {
+  useCreateTemplateMutation,
+  useGetTemplateByIdQuery,
+  useUpdateTemplateMutation,
+} from "@/src/store/api/templatesApiSlice";
 import { LoadingScreen } from "./LoadingScreen";
 import { Indent } from "../editor/extensions/Indent";
 import { PageBreak } from "../editor/extensions/PageBreak";
@@ -95,6 +101,10 @@ const ContractEditor = (props: IContractEditor) => {
     useUpdateContractMutation();
   const [uploadMedia, { isLoading: isUploadingMedia }] =
     useUploadMediaMutation();
+  const [createTemplate, { isLoading: isCreatingTemplate }] =
+    useCreateTemplateMutation();
+  const [updateTemplate, { isLoading: isUpdatingTemplate }] =
+    useUpdateTemplateMutation();
 
   const [workingDocument, setWorkingDocument] =
     useState<TContractEditorDocument | null>(() => {
@@ -126,7 +136,11 @@ const ContractEditor = (props: IContractEditor) => {
   const documentContent = workingDocument?.body ?? "";
 
   const isProcessing =
-    isLoadingCreateContract || isUpdatingContract || isUploadingMedia;
+    isLoadingCreateContract ||
+    isUpdatingContract ||
+    isCreatingTemplate ||
+    isUpdatingTemplate ||
+    isUploadingMedia;
 
   const updateField = <K extends keyof TContractEditorDocument>(
     field: K,
@@ -312,14 +326,31 @@ const ContractEditor = (props: IContractEditor) => {
         return; // On arrête la fonction ici
       }
 
+      const rawBody = editor ? editor.getJSON() : workingDocument.body;
+      const resolvedBody = await resolvePendingImages(rawBody);
+
       // Optionnel : Gérer ici la logique spécifique aux templates si besoin
       if (workingDocument.isTemplate) {
-        // Logique de sauvegarde de template...
-        // return;
+        if (!initialDocument) {
+          const createTemplatePayload: ICreateTemplateRequest = {
+            name: workingDocument.name,
+            idAuthor: currentUser.id,
+            status: status,
+            body: resolvedBody as object,
+          };
+          await createTemplate(createTemplatePayload).unwrap();
+        } else {
+          const updateTemplatePayload: Partial<IUpdateTemplateRequest> = {
+            name: workingDocument.name,
+            status: status,
+            body: resolvedBody as object,
+          };
+          await updateTemplate({
+            id: workingDocument.id ?? "",
+            request: updateTemplatePayload,
+          }).unwrap();
+        }
       } else {
-        const rawBody = editor ? editor.getJSON() : workingDocument.body;
-        const resolvedBody = await resolvePendingImages(rawBody);
-
         const basePayload = {
           autoRenew: workingDocument.autoRenew ?? false,
           contractType: workingDocument.contractType,

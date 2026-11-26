@@ -14,12 +14,14 @@ import { Checkbox } from "../ui/checkbox";
 import { useDeleteContractMutation } from "@/src/store/api/contractsSlice";
 import { operationSuccess } from "@/src/utils/operationsToasts";
 import { responseErrorApi } from "@/src/utils/responseErrorApi";
+import { useDeleteTemplateMutation } from "@/src/store/api/templatesApiSlice";
 
 interface IConfirmationDeleteModal {
   isOpen: boolean;
   onClose: () => void;
   documentName: string;
   idDocumentToDelete: string;
+  isTemplate?: boolean; // Ajout d'une propriété pour indiquer si c'est un template
 }
 
 export const ConfirmationDeleteModal: FC<IConfirmationDeleteModal> = ({
@@ -27,12 +29,26 @@ export const ConfirmationDeleteModal: FC<IConfirmationDeleteModal> = ({
   onClose,
   documentName,
   idDocumentToDelete,
+  isTemplate = false, // Valeur par défaut à false
 }) => {
   const [hasConfirmed, setHasConfirmed] = useState(false);
 
   const [deleteContract, { isLoading }] = useDeleteContractMutation();
+  const [deleteTemplate, { isLoading: isDeletingTemplate }] =
+    useDeleteTemplateMutation();
 
-  const handleDeleteDocument = async () => {
+  const handleConfirmDeleteTemplate = async () => {
+    try {
+      await deleteTemplate(idDocumentToDelete).unwrap();
+      onClose();
+      operationSuccess("Modèle supprimé avec succès.");
+    } catch (e) {
+      onClose();
+      responseErrorApi(e);
+    }
+  };
+
+  const handleDeleteContract = async () => {
     try {
       await deleteContract(idDocumentToDelete).unwrap();
       onClose();
@@ -42,6 +58,10 @@ export const ConfirmationDeleteModal: FC<IConfirmationDeleteModal> = ({
       responseErrorApi(e);
     }
   };
+
+  const handleDelete = isTemplate
+    ? handleConfirmDeleteTemplate
+    : handleDeleteContract;
 
   // Réinitialiser la case à cocher à chaque fois que la modale s'ouvre ou se ferme
   useEffect(() => {
@@ -102,7 +122,7 @@ export const ConfirmationDeleteModal: FC<IConfirmationDeleteModal> = ({
               Annuler
             </Button>
             <Button
-              onClick={handleDeleteDocument}
+              onClick={handleDelete}
               disabled={!hasConfirmed || isLoading}
               className="px-5 py-2.5 text-sm font-bold text-white bg-rose-600 border border-transparent rounded-xl hover:bg-rose-700 disabled:opacity-50 disabled:hover:bg-rose-600 transition-all shadow-sm flex items-center gap-2"
             >

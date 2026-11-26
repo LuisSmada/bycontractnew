@@ -8,7 +8,7 @@ import {
 
 export const templateApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    createTemplate: builder.mutation<ICreateTemplateRequest, ITemplateResponse>(
+    createTemplate: builder.mutation<ITemplateResponse, ICreateTemplateRequest>(
       {
         query: (request) => ({
           url: "/templates",
@@ -51,6 +51,7 @@ export const templateApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
+  useCreateTemplateMutation,
   useGetAllTemplatesQuery,
   useGetTemplateByIdQuery,
   useUpdateTemplateMutation,
