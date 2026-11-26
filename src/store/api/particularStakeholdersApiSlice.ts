@@ -1,19 +1,17 @@
 import {
   ICreateParticularStakeholderRequest,
   IParticularStakeholder,
-  IParticularStakeholderListResponse,
 } from "@/src/types/apiResponseType";
 import { apiSlice } from "./apiSlice";
 
 export const particularStakeholdersApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getAllParticularStakeholders: builder.query<
-      IParticularStakeholderListResponse,
-      void
-    >({
-      query: () => "/particular-stakeholders",
-      providesTags: ["ParticularStakeholder"],
-    }),
+    getAllParticularStakeholders: builder.query<IParticularStakeholder[], void>(
+      {
+        query: () => "/particular-stakeholders",
+        providesTags: ["ParticularStakeholder"],
+      },
+    ),
     getParticularStakeholderById: builder.query<IParticularStakeholder, string>(
       {
         query: (id) => `/particular-stakeholders/${id}`,

@@ -174,15 +174,6 @@ export interface IParticularStakeholder extends IMainContactCompany {
   modifiedAt: string;
 }
 
-export interface IParticularStakeholderListResponse {
-  content: IParticularStakeholder[];
-  pageable: object;
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
-}
-
 // ------------------USER ------------------------//
 export interface IUpdateUserRequest {
   firstName: string;

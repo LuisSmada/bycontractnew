@@ -22,10 +22,10 @@ export const StakeholdersPage = () => {
   const openSthFormSheet = isCreateSheetOpen || !!sthToModify;
 
   const {
-    data: professionalStakeholders,
-    isLoading: isLoadingProfessionalStakeholders,
-    isError: isErrorProfessionalStakeholders,
-    refetch: refetchProfessionalStakeholders,
+    data: companies,
+    isLoading: isLoadingComapanies,
+    isError: isErrorCompanies,
+    refetch: refetchCompanies,
   } = useGetAllMyCompaniesQuery();
 
   const {
@@ -36,19 +36,19 @@ export const StakeholdersPage = () => {
   } = useGetAllParticularStakeholdersQuery();
 
   const handleRefetchall = () => {
-    refetchProfessionalStakeholders();
+    refetchCompanies();
     refetchParticularStakeholders();
   };
 
   const stakeholders: TStakeholder[] = [
-    ...(professionalStakeholders ?? []),
-    ...(particularStakeholders?.content ?? []),
+    ...(companies ?? []),
+    ...(particularStakeholders ?? []),
   ];
 
-  if (isLoadingProfessionalStakeholders && isLoadingParticularStakeholders)
+  if (isLoadingComapanies && isLoadingParticularStakeholders)
     return <LoadingScreen />;
 
-  if (isErrorProfessionalStakeholders && isErrorParticularStakeholders) {
+  if (isErrorCompanies && isErrorParticularStakeholders) {
     return (
       <ErrorScreen
         title="Erreur de chargement"
