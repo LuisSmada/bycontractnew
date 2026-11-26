@@ -254,3 +254,10 @@ export interface IFacturationInformations {
   postalCode: string;
   country: string;
 }
+
+// ------------------MEDIA  ------------------------//
+
+export interface IUploadMediaResponse {
+  key: string;
+  url?: string;
+}
