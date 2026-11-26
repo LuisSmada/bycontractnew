@@ -121,4 +121,6 @@ export type TTableDocumentType = {
   date: string;
   color: string;
   author: TAuthorInfos;
+  createdAt: string;
+  modifiedAt: string;
 };

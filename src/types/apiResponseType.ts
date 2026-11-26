@@ -20,7 +20,6 @@ export interface PageResponse<T> {
 
 export interface ICreateTemplateRequest {
   name: string;
-  idAuthor: UniqueID;
   status: EContractStatus;
   body: object;
 }
@@ -80,7 +79,8 @@ interface IContractGeneric {
 }
 
 export interface ICreateContractRequest extends Omit<IContractGeneric, "id"> {
-  idCompany: UniqueID;
+  idCompany: UniqueID | null;
+  idParticularStakeholder: UniqueID | null;
   bodyJson: object;
   bodyText: string;
 }
@@ -94,7 +94,13 @@ export interface IListContractResponse {
   company: {
     id: string;
     name: string;
-  };
+  } | null;
+  particularStakeholder: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
   createdAt: string;
   modifiedAt: string;
   expirationDate: string | null;
@@ -110,7 +116,13 @@ export interface IGetContractsParams {
 
 export interface IFindContractResponse extends IContractGeneric {
   author: TAuthorInfos;
-  company: TCompanyInfos;
+  company: TCompanyInfos | null;
+  particularStakeholder: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
   content: {
     bodyJson: object;
     plaintext: string;

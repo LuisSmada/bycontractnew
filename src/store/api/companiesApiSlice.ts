@@ -35,6 +35,7 @@ export const companiesApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["Company"],
     }),
   }),
+  overrideExisting: true,
 });
 
 export const {

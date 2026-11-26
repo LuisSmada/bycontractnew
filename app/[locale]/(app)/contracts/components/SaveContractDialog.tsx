@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { EContractStatus, TToastType } from "@/src/model/entities";
 import { Button } from "@base-ui/react";
 import { CheckCircle2, Download, EditIcon } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { SetStateAction } from "react";
 
 interface ISaveContractDialog {
@@ -21,6 +22,9 @@ export const SaveContractDialog = ({
   setIsSaveModalOpened,
   onContractSave,
 }: ISaveContractDialog) => {
+  const path = usePathname();
+  const isTemplate = path.includes("template");
+
   return (
     <Dialog
       open={isSaveModalOpened}
@@ -76,8 +80,10 @@ export const SaveContractDialog = ({
               onClick={() => {
                 setIsSaveModalOpened(false);
                 onContractSave(
-                  EContractStatus.PENDING,
-                  "Document figé, prêt à être signé.",
+                  isTemplate ? EContractStatus.ACTIVE : EContractStatus.PENDING,
+                  isTemplate
+                    ? "Modèle activé."
+                    : "Document figé, prêt à être signé.",
                   "success",
                 );
               }}

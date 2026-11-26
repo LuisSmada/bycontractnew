@@ -23,7 +23,7 @@ import { responseErrorApi } from "@/src/utils/responseErrorApi";
 import { formatFileSize } from "@/src/helpers/generic";
 import { useUploadSignedContractMutation } from "@/src/store/api/contractsSlice";
 
-export interface IMarkAsSignedDialogProps {
+interface IMarkAsSignedDialogProps {
   isOpen: boolean;
   onClose: () => void;
   contractName: string;

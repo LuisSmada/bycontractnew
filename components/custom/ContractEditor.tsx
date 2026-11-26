@@ -52,11 +52,13 @@ import { useUploadMediaMutation } from "@/src/store/api/mediaApiSlice";
 interface IContractEditorWrapper {
   document: TContractEditorDocument | null;
   idTemplate?: string | null;
+  isForCreateTemplate?: boolean;
 }
 
 export const ContractEditorWrapper: FC<IContractEditorWrapper> = ({
   document,
   idTemplate,
+  isForCreateTemplate,
 }) => {
   const { data, isLoading } = useGetTemplateByIdQuery(idTemplate ?? "", {
     skip: !idTemplate,
@@ -74,7 +76,13 @@ export const ContractEditorWrapper: FC<IContractEditorWrapper> = ({
     return <LoadingScreen message="Chargement du modèle sélectionné..." />;
   }
 
-  return <ContractEditor document={document} templateData={templateData} />;
+  return (
+    <ContractEditor
+      document={document}
+      templateData={templateData}
+      isForCreateTemplate={isForCreateTemplate}
+    />
+  );
 };
 
 interface IContractEditor {
@@ -84,6 +92,7 @@ interface IContractEditor {
     name?: string;
     content?: object;
   };
+  isForCreateTemplate?: boolean;
 }
 
 const ContractEditor = (props: IContractEditor) => {
@@ -108,11 +117,23 @@ const ContractEditor = (props: IContractEditor) => {
 
   const [workingDocument, setWorkingDocument] =
     useState<TContractEditorDocument | null>(() => {
-      // Cette fonction ne s'exécute qu'une seule fois au chargement du composant
+      if (props.isForCreateTemplate) {
+        return {
+          ...(initialDocument || {}),
+          isTemplate: true,
+          name: "",
+          author: {
+            firstName: currentUser.firstName,
+            lastName: currentUser.lastName,
+          },
+          body: {},
+        } as TContractEditorDocument;
+      }
 
       if (isNewDocument) {
         return {
           ...(initialDocument || {}),
+          isTemplate: false,
           author: {
             firstName: currentUser.firstName,
             lastName: currentUser.lastName,
@@ -122,7 +143,6 @@ const ContractEditor = (props: IContractEditor) => {
         } as TContractEditorDocument;
       }
 
-      // Si ce n'est pas un nouveau document, on charge juste le document existant
       return initialDocument;
     });
 
@@ -312,6 +332,8 @@ const ContractEditor = (props: IContractEditor) => {
     return resolvedBody;
   };
 
+  console.log("initialDocument", initialDocument ? true : false);
+
   const handleSaveContract = async (
     status: EContractStatus,
     message: string,
@@ -332,14 +354,15 @@ const ContractEditor = (props: IContractEditor) => {
       // Optionnel : Gérer ici la logique spécifique aux templates si besoin
       if (workingDocument.isTemplate) {
         if (!initialDocument) {
+          console.log("Enter in create template");
           const createTemplatePayload: ICreateTemplateRequest = {
             name: workingDocument.name,
-            idAuthor: currentUser.id,
             status: status,
             body: resolvedBody as object,
           };
           await createTemplate(createTemplatePayload).unwrap();
         } else {
+          console.log("Enter in update template");
           const updateTemplatePayload: Partial<IUpdateTemplateRequest> = {
             name: workingDocument.name,
             status: status,
@@ -360,7 +383,12 @@ const ContractEditor = (props: IContractEditor) => {
             : workingDocument.expirationDate,
           name: workingDocument.name,
           value: workingDocument?.value,
-          idCompany: workingDocument.company?.id,
+          idCompany: workingDocument.company
+            ? workingDocument.company.id
+            : null,
+          idParticularStakeholder: workingDocument.particularStakeholder
+            ? workingDocument.particularStakeholder.id
+            : null,
           bodyJson: resolvedBody as object,
           bodyText: editor?.getText() ?? "",
           status: status,
@@ -421,7 +449,14 @@ const ContractEditor = (props: IContractEditor) => {
       />
 
       <div className="flex-1 flex overflow-hidden">
-        <ContractActor editor={editor} />
+        <ContractActor
+          editor={editor}
+          onInsertImage={(file) => {
+            if (editor) {
+              insertLocalImage(editor, file);
+            }
+          }}
+        />
         <ContractEditorSide
           document={workingDocument}
           updateField={updateField}

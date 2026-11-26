@@ -77,11 +77,22 @@ export const ContractsPage = () => {
         ? sanitizeDate(c.expirationDate)
         : "Tacite reconduction";
       const { color, tabClass } = sanitizeDocumentStatus(c.status);
+
+      const displayTier = () => {
+        if (c.company) {
+          return c.company.name;
+        } else if (c.particularStakeholder) {
+          return `${c.particularStakeholder.firstName} ${c.particularStakeholder.lastName}`;
+        } else {
+          return "Aucun tiers associé";
+        }
+      };
+
       return {
         id: c.id,
         name: c.name,
         type: c.type,
-        tier: c.company.name,
+        tier: displayTier(),
         status: c.status,
         class: tabClass,
         date: exDate,
@@ -91,6 +102,8 @@ export const ContractsPage = () => {
           firstName: c.author.firstName,
           lastName: c.author.lastName,
         },
+        createdAt: c.createdAt,
+        modifiedAt: c.modifiedAt,
       };
     });
   };
@@ -132,12 +145,8 @@ export const ContractsPage = () => {
   const filteredContracts = useMemo(() => {
     let result: TTableDocumentType[] = allDocuments;
 
-    console.log(allDocuments);
-
     // Filtrage par Onglet
-    if (activeTab === EContractsListTabs.ALL) {
-      result = result;
-    } else {
+    if (activeTab !== EContractsListTabs.ALL) {
       result = result.filter((c) => c.class === activeTab);
     }
 
@@ -155,7 +164,12 @@ export const ContractsPage = () => {
       }
     }
 
-    return result;
+    // Tri du plus récent au plus ancien (copie pour ne pas muter allDocuments)
+    return [...result].sort((a, b) => {
+      const dateA = new Date(a.createdAt ?? 0).getTime();
+      const dateB = new Date(b.createdAt ?? 0).getTime();
+      return dateB - dateA;
+    });
   }, [activeTab, allDocuments, searchQuery]);
 
   const handleSelectAll = (value: boolean) => {
@@ -384,7 +398,7 @@ export const ContractsPage = () => {
                             {canBeModified && (
                               <ActionBtn
                                 icon={PenTool}
-                                title="Éditer le modèle"
+                                title="Éditer le contrat"
                                 onClick={() =>
                                   router.push(
                                     `/fr/contracts/${docType}/${contract.id}`,

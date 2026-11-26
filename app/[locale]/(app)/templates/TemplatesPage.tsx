@@ -39,6 +39,7 @@ import {
 import { operationSuccess } from "@/src/utils/operationsToasts";
 import { responseErrorApi } from "@/src/utils/responseErrorApi";
 import { ConfirmationDeleteModal } from "@/components/custom/ConfirmationDeleteModal";
+import { sanitizeDate } from "@/src/helpers/generic";
 
 export const TemplatesPage = () => {
   const ITEMS_PER_PAGE = 5;
@@ -68,12 +69,7 @@ export const TemplatesPage = () => {
     templates: ITemplateResponse[],
   ): TTableDocumentType[] => {
     return templates.map((t) => {
-      const day = new Date(t.createdAt).getDay().toString().padStart(2, "0");
-      const month = new Date(t.createdAt)
-        .getMonth()
-        .toString()
-        .padStart(2, "0");
-      const year = new Date(t.createdAt).getFullYear();
+      const date = sanitizeDate(t.createdAt);
       const { tabClass } = sanitizeDocumentStatus(t.status);
       return {
         id: t.id,
@@ -82,13 +78,15 @@ export const TemplatesPage = () => {
         tier: "-",
         status: t.status,
         class: tabClass,
-        date: `Créé le ${day}/${month}/${year}`,
+        date: `Créé le ${date}`,
         color: "bg-indigo-100 text-indigo-700",
         author: {
           id: t.author.id,
           firstName: t.author.firstName,
           lastName: t.author.lastName,
         },
+        createdAt: t.createdAt,
+        modifiedAt: t.modifiedAt,
       };
     });
   };

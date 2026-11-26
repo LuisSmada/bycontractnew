@@ -17,8 +17,6 @@ export const ContractSystemInformations = (
   const path = usePathname();
   const isNewDocument = path.includes("new");
 
-  console.log("modifed", props.document?.modifiedAt);
-
   return (
     <div className="space-y-3 pt-6 border-t border-slate-100">
       <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
@@ -26,16 +24,15 @@ export const ContractSystemInformations = (
       </h4>
 
       <div className="bg-slate-50 rounded-xl border border-slate-100 p-3 space-y-3">
-        {!props.document?.isTemplate && (
-          <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-200/60">
-            <span className="text-slate-500 font-semibold">Statut actuel</span>
-            <span className="font-bold text-amber-600 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-md">
-              {traductContractStatus(
-                props.document?.status ?? EContractStatus.DRAFT,
-              )}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-200/60">
+          <span className="text-slate-500 font-semibold">Statut actuel</span>
+          <span className="font-bold text-amber-600 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-md">
+            {traductContractStatus(
+              props.document?.status ?? EContractStatus.DRAFT,
+            )}
+          </span>
+        </div>
+
         {!isNewDocument && (
           <>
             <div className="flex items-center justify-between text-xs">
@@ -62,19 +59,17 @@ export const ContractSystemInformations = (
             </div>
           </>
         )}
-        {!props.document?.isTemplate && (
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500 flex items-center gap-1.5">
-              <FileBadge2 className="w-3.5 h-3.5" /> Modèle source
-            </span>
-            <span
-              className="font-medium text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded cursor-pointer hover:bg-indigo-100 transition-colors truncate max-w-25"
-              title="NDA Standard V2"
-            >
-              {props.templateName ? props.templateName : "Aucun"}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-slate-500 flex items-center gap-1.5">
+            <FileBadge2 className="w-3.5 h-3.5" /> Modèle source
+          </span>
+          <span
+            className="font-medium text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded cursor-pointer hover:bg-indigo-100 transition-colors truncate max-w-25"
+            title="NDA Standard V2"
+          >
+            {props.templateName ? props.templateName : "Aucun"}
+          </span>
+        </div>
       </div>
 
       {/* Notes Internes */}

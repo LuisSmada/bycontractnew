@@ -11,6 +11,7 @@ export const mediaApiSlice = apiSlice.injectEndpoints({
       }),
     }),
   }),
+  overrideExisting: true,
 });
 
 export const { useUploadMediaMutation } = mediaApiSlice;

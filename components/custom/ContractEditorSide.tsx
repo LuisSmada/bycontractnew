@@ -8,11 +8,13 @@ import { ContractModality } from "./ContractEditing/ContractModality";
 import { ContractSystemInformations } from "./ContractEditing/ContractSystemInformations";
 import { ContractClassification } from "./ContractEditing/ContractClassification";
 import {
+  IParticularStakeholder,
   TCompanyInfos,
   TContractEditorContract,
   TContractEditorDocument,
 } from "@/src/types/apiResponseType";
 import { EContractStatus, EContractType } from "@/src/model/entities";
+import { usePathname } from "next/navigation";
 
 interface IContractEditorSide {
   document: TContractEditorDocument | null;
@@ -32,8 +34,6 @@ export const ContractEditorSide = ({
   assertsNonNullable(currentUser);
   assertsNonNullable(document);
   assertsNonNullable(document?.author);
-
-  const { data: allStakeholders } = useGetAllMyCompaniesQuery();
 
   const [activeTab, setActiveTab] = useState<"parametres" | "assistants">(
     "parametres",
@@ -56,6 +56,8 @@ export const ContractEditorSide = ({
     isDocumentContract &&
     (document.status === EContractStatus.SIGNED ||
       document.status === EContractStatus.ACTIVE);
+
+  console.log(document.author);
 
   return (
     <div className="w-80 bg-white border-l border-slate-200 flex flex-col shrink-0 z-10 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)] md:flex h-screen">
@@ -86,14 +88,16 @@ export const ContractEditorSide = ({
               setSearchQuery={setSearchQuery}
               setIsSearching={setIsSearching}
               searchQuery={searchQuery}
-              allStakeholders={allStakeholders}
               isSearching={isSearching}
               onContractTypeChange={(value: EContractType) =>
                 updateContractField("contractType", value)
               }
-              onContractStakeholdersChange={(value: TCompanyInfos) =>
+              onContractCompanyChange={(value: TCompanyInfos | null) =>
                 updateContractField("company", value)
               }
+              onParticularStakeholderChange={(
+                value: IParticularStakeholder | null,
+              ) => updateContractField("particularStakeholder", value)}
             />
           )}
 

@@ -6,9 +6,10 @@ import { useMemo } from "react";
 
 interface IContractActor {
   editor: Editor | null;
+  onInsertImage: (file: File) => void;
 }
 
-export const ContractActor = ({ editor }: IContractActor) => {
+export const ContractActor = ({ editor, onInsertImage }: IContractActor) => {
   // console.log(JSON.stringify(editor?.get()));
 
   const providerValue = useMemo(() => ({ editor }), [editor]);
@@ -21,7 +22,10 @@ export const ContractActor = ({ editor }: IContractActor) => {
           <div className="max-w-6xl mx-auto">
             {" "}
             {/* Optionnel : pour centrer la toolbar sur les très grands écrans */}
-            <ContractEditorToolbar editor={editor} />
+            <ContractEditorToolbar
+              editor={editor}
+              onInsertImage={onInsertImage}
+            />
           </div>
         </div>
 

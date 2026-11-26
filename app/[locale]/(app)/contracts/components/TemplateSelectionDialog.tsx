@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { sanitizeDate } from "@/src/helpers/generic";
+import { EContractStatus } from "@/src/model/entities";
 import { useGetAllTemplatesQuery } from "@/src/store/api/templatesApiSlice";
 import {
   ChevronRight,
@@ -45,7 +46,8 @@ export const TemplateSelectionDialog = ({
 
   // Filtrage dynamique
   const filteredTemplates = useMemo(() => {
-    const templates = data ?? [];
+    const templates =
+      data?.filter((t) => t.status === EContractStatus.ACTIVE) ?? [];
     if (!searchQuery.trim()) {
       return templates;
     }

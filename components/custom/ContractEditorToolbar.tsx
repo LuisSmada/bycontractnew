@@ -45,14 +45,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { useRef } from "react";
+import { FC, useRef } from "react";
 
 type Alignment = "left" | "center" | "right";
 
-export const ContractEditorToolbar = ({
-  editor,
-}: {
+interface IContractEditorToolbarProps {
   editor: Editor | null;
+  onInsertImage: (file: File) => void;
+}
+
+export const ContractEditorToolbar: FC<IContractEditorToolbarProps> = ({
+  editor,
+  onInsertImage,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -118,14 +122,10 @@ export const ContractEditorToolbar = ({
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !editor) return;
-
-    // Dans un vrai SaaS, tu enverrais le fichier à ton backend (ex: AWS S3) ici
-    // et tu récupérerais une URL publique.
-    // Pour l'interface immédiate, on génère une URL locale temporaire :
-    const objectUrl = URL.createObjectURL(file);
-
-    editor.chain().focus().setImage({ src: objectUrl }).run();
+    if (!file) {
+      return;
+    }
+    onInsertImage(file);
 
     // On vide l'input pour pouvoir ré-uploader la même image si besoin
     if (fileInputRef.current) {
