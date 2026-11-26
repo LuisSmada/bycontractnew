@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { ContractActor } from "./ContractActor";
 import { usePathname, useRouter } from "next/navigation";
 import { ResizableImage } from "./ResizableImage";
@@ -8,7 +8,7 @@ import FileHandler from "@tiptap/extension-file-handler";
 import { TableKit } from "@tiptap/extension-table";
 import TextAlign from "@tiptap/extension-text-align";
 import StarterKit from "@tiptap/starter-kit";
-import { useEditor, useEditorState } from "@tiptap/react";
+import { Editor, useEditor, useEditorState } from "@tiptap/react";
 import Subscript from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { SaveContractDialog } from "@/app/[locale]/(app)/contracts/components/SaveContractDialog";
@@ -18,7 +18,11 @@ import {
 } from "@/src/store/api/contractsSlice";
 import { ContractEditorSide } from "./ContractEditorSide";
 import { useGetCurrentUserQuery } from "@/src/store/api/authApiSlice";
-import { assertsNonNullable } from "@/src/helpers/generic";
+import {
+  assertsNonNullable,
+  collectBlobUrls,
+  replaceBlobUrls,
+} from "@/src/helpers/generic";
 import {
   ICreateContractRequest,
   IUpdateContractRequest,
@@ -37,6 +41,7 @@ import { useGetTemplateByIdQuery } from "@/src/store/api/templatesApiSlice";
 import { LoadingScreen } from "./LoadingScreen";
 import { Indent } from "../editor/extensions/Indent";
 import { PageBreak } from "../editor/extensions/PageBreak";
+import { useUploadMediaMutation } from "@/src/store/api/mediaApiSlice";
 
 interface IContractEditorWrapper {
   document: TContractEditorDocument | null;
@@ -88,8 +93,8 @@ const ContractEditor = (props: IContractEditor) => {
     useCreateContractMutation();
   const [updateContrat, { isLoading: isUpdatingContract }] =
     useUpdateContractMutation();
-
-  const isProcessing = isLoadingCreateContract || isUpdatingContract;
+  const [uploadMedia, { isLoading: isUploadingMedia }] =
+    useUploadMediaMutation();
 
   const [workingDocument, setWorkingDocument] =
     useState<TContractEditorDocument | null>(() => {
@@ -113,8 +118,15 @@ const ContractEditor = (props: IContractEditor) => {
 
   const [isSaveModalOpened, setIsSaveModalOpened] = useState(false);
   const [isUnsavedModalOpened, setIsUnsavedModalOpened] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState(() => new Map());
+
+  // Ref utilisée uniquement dans les useEffect pour libérer les blob URLs au démontage
+  const pendingFilesCleanupRef = useRef(pendingFiles);
 
   const documentContent = workingDocument?.body ?? "";
+
+  const isProcessing =
+    isLoadingCreateContract || isUpdatingContract || isUploadingMedia;
 
   const updateField = <K extends keyof TContractEditorDocument>(
     field: K,
@@ -141,6 +153,29 @@ const ContractEditor = (props: IContractEditor) => {
   const isNotEditable =
     workingDocument?.status === EContractStatus.SIGNED ||
     workingDocument?.status === EContractStatus.ACTIVE;
+
+  const insertLocalImage = (
+    currentEditor: Editor,
+    file: File,
+    pos?: number,
+  ) => {
+    const blobUrl = URL.createObjectURL(file);
+    setPendingFiles((prev) => {
+      const next = new Map(prev);
+      next.set(blobUrl, file);
+      return next;
+    });
+
+    const targetPos = pos ?? currentEditor.state.selection.anchor;
+    currentEditor
+      .chain()
+      .insertContentAt(targetPos, {
+        type: "image",
+        attrs: { src: blobUrl },
+      })
+      .focus()
+      .run();
+  };
 
   const editor = useEditor({
     extensions: [
@@ -170,48 +205,14 @@ const ContractEditor = (props: IContractEditor) => {
           "image/webp",
         ],
         onDrop: (currentEditor, files, pos) => {
-          files.forEach((file) => {
-            const fileReader = new FileReader();
-
-            fileReader.readAsDataURL(file);
-            fileReader.onload = () => {
-              currentEditor
-                .chain()
-                .insertContentAt(pos, {
-                  type: "image",
-                  attrs: {
-                    src: fileReader.result,
-                  },
-                })
-                .focus()
-                .run();
-            };
-          });
+          files.forEach((file) => insertLocalImage(currentEditor, file, pos));
         },
         onPaste: (currentEditor, files, htmlContent) => {
           files.forEach((file) => {
             if (htmlContent) {
-              // if there is htmlContent, stop manual insertion & let other extensions handle insertion via inputRule
-              // you could extract the pasted file from this url string and upload it to a server for example
-              console.log(htmlContent); // oxlint-disable-line no-console
               return false;
             }
-
-            const fileReader = new FileReader();
-
-            fileReader.readAsDataURL(file);
-            fileReader.onload = () => {
-              currentEditor
-                .chain()
-                .insertContentAt(currentEditor.state.selection.anchor, {
-                  type: "image",
-                  attrs: {
-                    src: fileReader.result,
-                  },
-                })
-                .focus()
-                .run();
-            };
+            insertLocalImage(currentEditor, file);
           });
         },
       }),
@@ -244,6 +245,59 @@ const ContractEditor = (props: IContractEditor) => {
     },
   });
 
+  const resolvePendingImages = async (bodyJson: unknown): Promise<unknown> => {
+    const activeBlobUrls = new Set<string>();
+    collectBlobUrls(bodyJson, activeBlobUrls);
+
+    const filesToUpload = Array.from(activeBlobUrls)
+      .map((blobUrl) => ({
+        blobUrl,
+        file: pendingFiles.get(blobUrl),
+      }))
+      .filter(
+        (entry): entry is { blobUrl: string; file: File } => !!entry.file,
+      );
+
+    if (filesToUpload.length === 0) {
+      return bodyJson;
+    }
+
+    const uploadedMap = new Map<string, string>();
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
+
+    await Promise.all(
+      filesToUpload.map(async ({ blobUrl, file }) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await uploadMedia(formData).unwrap();
+
+        // Construit l'URL permanente pointant vers GET /api/v1/media/view
+        const permanentUrl =
+          res.url ??
+          `${apiBaseUrl}/api/v1/media/view?key=${encodeURIComponent(res.key)}`;
+
+        uploadedMap.set(blobUrl, permanentUrl);
+        URL.revokeObjectURL(blobUrl);
+      }),
+    );
+
+    // Retire les fichiers déjà uploadés du state (évite un double upload si createContract échoue)
+    setPendingFiles((prev) => {
+      const next = new Map(prev);
+      uploadedMap.forEach((_, blobUrl) => next.delete(blobUrl));
+      return next;
+    });
+
+    const resolvedBody = replaceBlobUrls(bodyJson, uploadedMap);
+
+    editor?.commands.setContent(resolvedBody as Record<string, unknown>, {
+      emitUpdate: false,
+    });
+
+    return resolvedBody;
+  };
+
   const handleSaveContract = async (
     status: EContractStatus,
     message: string,
@@ -263,6 +317,9 @@ const ContractEditor = (props: IContractEditor) => {
         // Logique de sauvegarde de template...
         // return;
       } else {
+        const rawBody = editor ? editor.getJSON() : workingDocument.body;
+        const resolvedBody = await resolvePendingImages(rawBody);
+
         const basePayload = {
           autoRenew: workingDocument.autoRenew ?? false,
           contractType: workingDocument.contractType,
@@ -273,7 +330,7 @@ const ContractEditor = (props: IContractEditor) => {
           name: workingDocument.name,
           value: workingDocument?.value,
           idCompany: workingDocument.company?.id,
-          bodyJson: workingDocument.body,
+          bodyJson: resolvedBody as object,
           bodyText: editor?.getText() ?? "",
           status: status,
         };
@@ -307,6 +364,18 @@ const ContractEditor = (props: IContractEditor) => {
       responseErrorApi(e);
     }
   };
+
+  useEffect(() => {
+    pendingFilesCleanupRef.current = pendingFiles;
+  }, [pendingFiles]);
+
+  useEffect(() => {
+    return () => {
+      pendingFilesCleanupRef.current.forEach((_, blobUrl) =>
+        URL.revokeObjectURL(blobUrl),
+      );
+    };
+  }, []);
 
   return (
     <>

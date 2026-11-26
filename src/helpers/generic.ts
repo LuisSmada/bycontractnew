@@ -77,3 +77,52 @@ export const calculateSubscriptionDaysLeft = (
 
   return diffDays;
 };
+
+// / --- Helpers purs pour parcourir et remplacer les URLs blob: dans le JSON TipTap ---
+
+export const collectBlobUrls = (node: unknown, found: Set<string>): void => {
+  if (!node || typeof node !== "object") return;
+
+  if (Array.isArray(node)) {
+    node.forEach((item) => collectBlobUrls(item, found));
+    return;
+  }
+
+  const record = node as Record<string, unknown>;
+  const attrs = record.attrs as Record<string, unknown> | undefined;
+
+  if (typeof attrs?.src === "string" && attrs.src.startsWith("blob:")) {
+    found.add(attrs.src);
+  }
+
+  if (Array.isArray(record.content)) {
+    collectBlobUrls(record.content, found);
+  }
+};
+
+export const replaceBlobUrls = (
+  node: unknown,
+  urlMap: Map<string, string>,
+): unknown => {
+  if (!node || typeof node !== "object") return node;
+
+  if (Array.isArray(node)) {
+    return node.map((item) => replaceBlobUrls(item, urlMap));
+  }
+
+  const record = node as Record<string, unknown>;
+  const attrs = record.attrs as Record<string, unknown> | undefined;
+
+  const updatedAttrs =
+    typeof attrs?.src === "string" && urlMap.has(attrs.src)
+      ? { ...attrs, src: urlMap.get(attrs.src) }
+      : attrs;
+
+  return {
+    ...record,
+    ...(updatedAttrs ? { attrs: updatedAttrs } : {}),
+    ...(Array.isArray(record.content)
+      ? { content: replaceBlobUrls(record.content, urlMap) }
+      : {}),
+  };
+};
