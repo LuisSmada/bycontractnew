@@ -185,8 +185,9 @@ const ContractEditor = (props: IContractEditor) => {
   }, [initialDocument, workingDocument]);
 
   const isNotEditable =
-    workingDocument?.status === EContractStatus.SIGNED ||
-    workingDocument?.status === EContractStatus.ACTIVE;
+    !workingDocument?.isTemplate &&
+    (workingDocument?.status === EContractStatus.SIGNED ||
+      workingDocument?.status === EContractStatus.ACTIVE);
 
   const insertLocalImage = (
     currentEditor: Editor,
